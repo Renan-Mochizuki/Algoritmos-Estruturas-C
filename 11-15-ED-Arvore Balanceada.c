@@ -44,7 +44,7 @@ void ImprimirValoresRecursiva(Arvore* arvore, itemNo* no) {
 void ImprimirValores(Arvore* arvore) {
   // Se a árvore estiver vazia
   if (!arvore->raiz) {
-    printf("A arvore esta vazia\n");
+    printf("\nA arvore esta vazia\n\n");
     return;
   }
 
@@ -118,12 +118,13 @@ itemNo *RotacionarL(itemNo *p) {
   //     P
   //   U    =>    U
   // V          V   P
-  if (balancoU == -1) {
+  if (balancoU == -1 || balancoU == 0) {
     // Descendo P. Colocando os itens da direita de U em P e anexando P na direita de U
     p->esq = u->dir;
     u->dir = p;
     // Atualizando altura
-    p->h -= 2;
+    AtualizarAlturaDoNo(p);
+    AtualizarAlturaDoNo(u);
     return u;
   }
 
@@ -140,9 +141,9 @@ itemNo *RotacionarL(itemNo *p) {
     p->esq = v->dir;
     v->dir = p;
     // Atualizando altura
-    p->h -= 2;
-    u->h -= 1;
-    v->h += 1;
+    AtualizarAlturaDoNo(u);
+    AtualizarAlturaDoNo(p);
+    AtualizarAlturaDoNo(v);
     return v;
   }
 
@@ -157,12 +158,13 @@ itemNo *RotacionarR(itemNo *p) {
   // P
   //   U    =>    U
   //     V      P   V
-  if (balancoU == 1) {
+  if (balancoU == 1 || balancoU == 0) {
     // Descendo P
     p->dir = u->esq;
     u->esq = p;
     // Atualizando altura
-    p->h -= 2;
+    AtualizarAlturaDoNo(p);
+    AtualizarAlturaDoNo(u);
     return u;
   }
 
@@ -179,9 +181,9 @@ itemNo *RotacionarR(itemNo *p) {
     p->dir = v->esq;
     v->esq = p;
     // Atualizando altura
-    p->h -= 2;
-    u->h -= 1;
-    v->h += 1;
+    AtualizarAlturaDoNo(u);
+    AtualizarAlturaDoNo(p);
+    AtualizarAlturaDoNo(v);
     return v;
   }
 
@@ -195,11 +197,11 @@ void ImprimirAvisoDesbalanceamento(itemNo *no, Lado lado) {
   printf("No de valor %d desbalanceado. h = %d, balanco = %d\n", no->valor, no->h, balancoNo);
   if(lado == ESQUERDO){
     balancoNoFilho = CalcularBalanco(no->esq);
-    if(balancoNoFilho == -1) printf("Fazendo rotacao LL\n");
+    if(balancoNoFilho == -1 || balancoNoFilho == 0) printf("Fazendo rotacao LL\n");
     else if(balancoNoFilho == 1) printf("Fazendo rotacao LR\n");
   } else {
     balancoNoFilho = CalcularBalanco(no->dir);
-    if(balancoNoFilho == 1) printf("Fazendo rotacao RR\n");
+    if(balancoNoFilho == 1 || balancoNoFilho == 0) printf("Fazendo rotacao RR\n");
     else if(balancoNoFilho == -1) printf("Fazendo rotacao RL\n");
   }
 }
@@ -319,13 +321,8 @@ itemNo** RetornarPonteiroMaiorNo(itemNo** noAtual) {
   return noAtual;
 }
 
-// Função recursiva que remove um valor da árvore
 Boolean RemoverValorRecursiva(itemNo** ponteiroNoAtual, TipoValor valor) {
-  // A recursividade dessa função serve apenas para realizar uma busca até o nó daquele valor
-  // e poder modificar o ponteiro para esse nó
-
   itemNo* noAtual = *ponteiroNoAtual;
-  itemNo* auxiliar = NULL;
 
   // Se o nó atual for NULL, retorne FALSE
   if (!noAtual) return FALSE;
@@ -333,46 +330,56 @@ Boolean RemoverValorRecursiva(itemNo** ponteiroNoAtual, TipoValor valor) {
   // Se o valor for menor que o valor do nó atual, prossiga à esquerda, se for maior, prossiga à direita
   if (valor < noAtual->valor) {
     // Procurar na subárvore esquerda
-    return RemoverValorRecursiva(&noAtual->esq, valor);
+    if (!RemoverValorRecursiva(&noAtual->esq, valor)) return FALSE;
   } else if (valor > noAtual->valor) {
     // Procurar na subárvore direita
-    return RemoverValorRecursiva(&noAtual->dir, valor);
+    if (!RemoverValorRecursiva(&noAtual->dir, valor)) return FALSE;
+  } else {
+    // Se o valor for encontrado
+    if (!noAtual->esq && !noAtual->dir) {  // Se o nó não tiver nenhum filho
+      free(noAtual);
+      *ponteiroNoAtual = NULL;
+    } else if (!noAtual->esq) {  // Se tiver apenas filho à direita
+      *ponteiroNoAtual = noAtual->dir;
+      free(noAtual);
+    } else if (!noAtual->dir) {  // Se tiver apenas filho à esquerda
+      *ponteiroNoAtual = noAtual->esq;
+      free(noAtual);
+    } else {  // Se tiver dois filhos
+      itemNo** ponteiroMenorNoADireita = RetornarPonteiroMenorNo(&noAtual->dir);
+      itemNo* menorNoADireita = *ponteiroMenorNoADireita;
+      // Alterando o ponteiro do menor nó à direita para ser o nó a direita do menor
+      // Ou seja, o menor nó à direita agora será, seu item à sua direita, seja ele um nó ou NULL
+      *ponteiroMenorNoADireita = menorNoADireita->dir;
+      // Modificando os filhos daquele menor nó para substituir o lugar do nó que estamos querendo remover
+      menorNoADireita->esq = noAtual->esq;
+      menorNoADireita->dir = noAtual->dir;
+      free(noAtual);
+      // Alterando o ponteiro do nó atual para ser o nó em que substituimos
+      *ponteiroNoAtual = menorNoADireita;
+    }
   }
 
-  // Se o valor for encontrado
-  if (!noAtual->esq && !noAtual->dir) {  // Se o nó não tiver nenhum filho
+  // Atualizar altura do nó atual
+  if (*ponteiroNoAtual) {
+    AtualizarAlturaDoNo(*ponteiroNoAtual);
 
-    free(noAtual);
-    *ponteiroNoAtual = NULL;
+    // Verificar o balanço e realizar rotações, se necessário
+    int balanco = CalcularBalanco(*ponteiroNoAtual);
 
-  } else if (!noAtual->esq) {  // Se tiver apenas filho à direita
+    // Rotação LL
+    if (balanco < -1) {
+      ImprimirAvisoDesbalanceamento(*ponteiroNoAtual, ESQUERDO);
+      *ponteiroNoAtual = RotacionarL(*ponteiroNoAtual);
+    }
 
-    auxiliar = noAtual;
-    *ponteiroNoAtual = noAtual->dir;
-    free(auxiliar);
-
-  } else if (!noAtual->dir) {  // Se tiver apenas filho à esquerda
-
-    auxiliar = noAtual;
-    *ponteiroNoAtual = noAtual->esq;
-    free(auxiliar);
-
-  } else {  // Se tiver dois filhos
-
-    itemNo** ponteiroMenorNoADireita = RetornarPonteiroMenorNo(&noAtual->dir);
-
-    // Armazenando o menor nó à direita
-    auxiliar = *ponteiroMenorNoADireita;
-    // Alterando o ponteiro do menor nó à direita para ser o nó a direita do menor
-    // Ou seja, o menor nó à direita agora será, seu item à sua direita, seja ele um nó ou NULL
-    *ponteiroMenorNoADireita = auxiliar->dir;
-    // Modificando os filhos daquele menor nó para substituir o lugar do nó que estamos querendo remover
-    auxiliar->esq = noAtual->esq;
-    auxiliar->dir = noAtual->dir;
-    free(noAtual);
-    // Alterando o ponteiro do nó atual para ser o nó em que substituimos
-    *ponteiroNoAtual = auxiliar;
+    // Rotação RR
+    if (balanco > 1) {
+      ImprimirAvisoDesbalanceamento(*ponteiroNoAtual, DIREITO);
+      *ponteiroNoAtual = RotacionarR(*ponteiroNoAtual);
+    }
   }
+
   return TRUE;
 }
 
