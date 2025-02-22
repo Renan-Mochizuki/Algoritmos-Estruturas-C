@@ -66,41 +66,25 @@ void InserirMeioLista(listaLigada *lista, TipoValor valor, int indice) {
 
   // Se a lista estiver vazia, defina o próximo do itemNovo
   // como NULL e primeiro item como o novo nó
-  if (lista->primeiro == NULL) {
-    itemNovo->proximo = NULL;
+  if (lista->primeiro == NULL || indice == 0) {
+    itemNovo->proximo = lista->primeiro;
     lista->primeiro = itemNovo;
     // Aumentando o tamanho
     lista->tamanho++;
     return;
   }
 
-  // Se o índice for 0, insira o valor no início da lista
-  if (indice == 0) {
-    InserirInicioLista(lista, valor);
-    return;
-  }
-
-  // Se o índice for maior ou igual ao tamanho,
-  // insira o valor no fim da lista
-  if (indice >= lista->tamanho) {
-    InserirFimLista(lista, valor);
-    return;
-  }
-
   itemNo *itemAtual = lista->primeiro;
 
-  // Loop que percorre a lista até o NULL, comparando o indice
-  for (int i = 0; itemAtual != NULL; i++, itemAtual = itemAtual->proximo) {
-    if (i == indice - 1) {
-      // Altera o proximo do itemNovo para o proximo do itemAtual
-      // Insere o itemNovo depois do itemAtual
-      itemNovo->proximo = itemAtual->proximo;
-      itemAtual->proximo = itemNovo;
-      // Aumentando o tamanho
-      lista->tamanho++;
-      return;
-    }
+  // Loop que percorre a lista até o índice desejado ou o final da lista
+  for (int i = 0; i < indice - 1 && itemAtual->proximo != NULL; i++) {
+    itemAtual = itemAtual->proximo;
   }
+
+  // Insere o itemNovo depois do itemAtual
+  itemNovo->proximo = itemAtual->proximo;
+  itemAtual->proximo = itemNovo;
+  lista->tamanho++;
 }
 
 int RemoverValorLista(listaLigada *lista, TipoValor valor) {
