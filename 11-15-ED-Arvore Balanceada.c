@@ -94,7 +94,7 @@ int CalcularBalanco(itemNo* no) {
 
 // Função que retorna o maior valor entre dois
 int RetornarMaior(int a, int b) {
-	return a > b ? a : b;
+  return a > b ? a : b;
 }
 
 // Função que atualiza o parâmetro de altura de um nó, tendo todos seus nós filhos já atualizados
@@ -113,7 +113,7 @@ void AtualizarAlturaDoNo(itemNo* no) {
 itemNo *RotacionarL(itemNo *p) {
   itemNo *u = p->esq;
   int balancoU = CalcularBalanco(u);
-  
+
   // Rotação LL:
   //     P
   //   U    =>    U
@@ -150,6 +150,7 @@ itemNo *RotacionarL(itemNo *p) {
   return NULL;
 }
 
+// Função que realiza a rotação da direita e retorna a raiz da subárvore depois da rotação
 itemNo *RotacionarR(itemNo *p) {
   itemNo *u = p->dir;
   int balancoU = CalcularBalanco(u);
@@ -194,7 +195,7 @@ itemNo *RotacionarR(itemNo *p) {
 void ImprimirAvisoDesbalanceamento(itemNo *no, Lado lado) {
   int balancoNo = CalcularBalanco(no);
   int balancoNoFilho;
-  printf("No de valor %d desbalanceado. h = %d, balanco = %d\n", no->valor, no->h, balancoNo);
+  printf("\nNo de valor %d desbalanceado. h = %d, balanco = %d\n", no->valor, no->h, balancoNo);
   if(lado == ESQUERDO){
     balancoNoFilho = CalcularBalanco(no->esq);
     if(balancoNoFilho == -1 || balancoNoFilho == 0) printf("Fazendo rotacao LL\n");
@@ -368,14 +369,28 @@ Boolean RemoverValorRecursiva(itemNo** ponteiroNoAtual, TipoValor valor) {
     int balanco = CalcularBalanco(*ponteiroNoAtual);
 
     // Rotação LL
-    if (balanco < -1) {
+    if (balanco < -1 && CalcularBalanco((*ponteiroNoAtual)->esq) <= 0) {
       ImprimirAvisoDesbalanceamento(*ponteiroNoAtual, ESQUERDO);
       *ponteiroNoAtual = RotacionarL(*ponteiroNoAtual);
     }
 
+    // Rotação LR
+    if (balanco < -1 && CalcularBalanco((*ponteiroNoAtual)->esq) > 0) {
+      ImprimirAvisoDesbalanceamento(*ponteiroNoAtual, ESQUERDO);
+      (*ponteiroNoAtual)->esq = RotacionarR((*ponteiroNoAtual)->esq);
+      *ponteiroNoAtual = RotacionarL(*ponteiroNoAtual);
+    }
+
     // Rotação RR
-    if (balanco > 1) {
+    if (balanco > 1 && CalcularBalanco((*ponteiroNoAtual)->dir) >= 0) {
       ImprimirAvisoDesbalanceamento(*ponteiroNoAtual, DIREITO);
+      *ponteiroNoAtual = RotacionarR(*ponteiroNoAtual);
+    }
+
+    // Rotação RL
+    if (balanco > 1 && CalcularBalanco((*ponteiroNoAtual)->dir) < 0) {
+      ImprimirAvisoDesbalanceamento(*ponteiroNoAtual, DIREITO);
+      (*ponteiroNoAtual)->dir = RotacionarL((*ponteiroNoAtual)->dir);
       *ponteiroNoAtual = RotacionarR(*ponteiroNoAtual);
     }
   }
