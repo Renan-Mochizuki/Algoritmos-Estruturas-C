@@ -28,16 +28,16 @@ typedef struct arvore {
 
 // Função recursiva que imprime os elementos da árvore
 void ImprimirValoresRecursiva(Arvore* arvore, itemNo* no) {
+  if (!no) return;
+
   // Faça o percurso in-ordem
-  if (no) {
-    ImprimirValoresRecursiva(arvore, no->esq);
-    // Destacando a raiz na impressão
-    if (no == arvore->raiz)
-      printf("*%d* ", no->valor);
-    else
-      printf("%d ", no->valor);
-    ImprimirValoresRecursiva(arvore, no->dir);
-  }
+  ImprimirValoresRecursiva(arvore, no->esq);
+  // Destacando a raiz na impressão
+  if (no == arvore->raiz)
+    printf("*%d* ", no->valor);
+  else
+    printf("%d ", no->valor);
+  ImprimirValoresRecursiva(arvore, no->dir);
 }
 
 // Função que imprime os elementos da árvore
@@ -119,6 +119,7 @@ Boolean InserirValor(Arvore* arvore, itemNo* noPai, TipoValor valor, Lado lado) 
 }
 
 // Função que retorna o nó pai de um nó
+// (Uma solução mais eficiente seria lidar com ponteiros duplos, porém para manter a simplicidade, foi feito utilizando um nó pai)
 itemNo* RetornarNoPai(itemNo* noAtual, itemNo* noFilho) {
   // Se noAtual for NULL ou se o noFilho for o próprio noAtual (raiz da árvore), retorne NULL
   if (!noAtual || noAtual == noFilho) return NULL;
@@ -135,54 +136,61 @@ itemNo* RetornarNoPai(itemNo* noAtual, itemNo* noFilho) {
   return RetornarNoPai(noAtual->dir, noFilho);
 }
 
-// Função recursiva que remove um nó da árvore
-Boolean RemoverNoRecursiva(itemNo* noPai, itemNo* noRemover) {
-  // Se o nó a ser removido for NULL (chegou no fim) retorne FALSE
-  if (!noRemover) return FALSE;
+// Função que retorna o último nó que se chega ao percorrer à esquerda de um dado nó
+itemNo* RetornarUltimoNoEsquerda(itemNo* noAtual) {
+  // Enquanto existir nó à esquerda, avance à esquerda até chegar ao fim
+  if (noAtual->esq) return RetornarUltimoNoEsquerda(noAtual->esq);
 
-  // Se o no a ser removido não tiver nenhum filho
-  if (!noRemover->esq && !noRemover->dir) {
-    // Se o nó a ser removido for o filho da esquerda ou direita do pai, limpa o ponteiro
-    if (noPai->esq && noPai->esq == noRemover) noPai->esq = NULL;
-    if (noPai->dir && noPai->dir == noRemover) noPai->dir = NULL;
-  } else if (noRemover->esq || noRemover->dir) {  // Se tiver um filho
-    // Pega um filho do noRemover, atribue ao no a ser removido e repete essa promoção até o último filho ser excluído
-    itemNo* noRemoverFilho = noRemover->esq ? noRemover->esq : noRemover->dir;
-    noRemover->valor = noRemoverFilho->valor;  // Aqui estamos apenas promovendo o valor e não o próprio nó, TODO: promoção do nó em vez do valor
-    return RemoverNoRecursiva(noRemover, noRemoverFilho);
+  return noAtual;
+}
+
+// Função que remove um valor da árvore
+Boolean RemoverValor(Arvore* arvore, TipoValor valor) {
+  itemNo* noRemover = BuscarValor(arvore, valor);
+  if(!noRemover) return FALSE;
+
+  itemNo* noPai = RetornarNoPai(arvore->raiz, noRemover);
+
+  // NULL já é o valor para quando o nó a ser removido não tiver nenhum valor
+  itemNo* noAPendurarNoPai = NULL;
+
+  if (!noRemover->esq) {  // Se tiver apenas filho à direita
+    noAPendurarNoPai = noRemover->dir;
+  } else if (!noRemover->dir) {  // Se tiver apenas filho à esquerda
+    noAPendurarNoPai = noRemover->esq;
+  } else {  // Se tiver dois filhos
+    itemNo* ultimoNoEsquerda = RetornarUltimoNoEsquerda(noRemover);
+    itemNo* paiUltimoNoEsquerda = RetornarNoPai(noRemover, ultimoNoEsquerda);
+    // Atribuindo os itens da direita do ultimo nó à esquerda para o pai (já que não há nada na esquerda do último nó)
+    paiUltimoNoEsquerda->esq = ultimoNoEsquerda->dir;
+    // Modificando os filhos do último nó para substituir o lugar do nó que estamos querendo remover
+    ultimoNoEsquerda->esq = noRemover->esq;
+    ultimoNoEsquerda->dir = noRemover->dir;
+    // Alterando o ponteiro do pai do nó a ser removido
+    noAPendurarNoPai = ultimoNoEsquerda;
+  }
+
+  if(noRemover != arvore->raiz) {
+    // Se o nó a ser removido for o filho da esquerda ou direita do pai, altera aquele lado
+    if (noPai->esq && noPai->esq == noRemover) noPai->esq = noAPendurarNoPai;
+    if (noPai->dir && noPai->dir == noRemover) noPai->dir = noAPendurarNoPai;
+  } else {
+    // Se o nó a remover for a raiz, então altere a raiz da arvore
+    arvore->raiz = noAPendurarNoPai;
   }
 
   free(noRemover);
   return TRUE;
 }
 
-// Função que remove um nó da árvore
-Boolean RemoverNo(Arvore* arvore, itemNo* noRemover) {
-  // Se o nó não tiver nenhum filho e for a raiz
-  if (!noRemover->esq && !noRemover->dir && noRemover == arvore->raiz) {
-    arvore->raiz = NULL;
-    free(noRemover);
-    return TRUE;
-  }
-
-  itemNo* noPai = RetornarNoPai(arvore->raiz, noRemover);
-  return RemoverNoRecursiva(noPai, noRemover);
-}
-
-// Função que remove um valor da árvore
-Boolean RemoverValor(Arvore* arvore, TipoValor valor) {
-  itemNo* noRemover = BuscarValor(arvore, valor);
-  return RemoverNo(arvore, noRemover);
-}
-
 // Função recursiva que limpa a árvore
 void LimparArvoreRecursiva(itemNo* no) {
+  if (!no) return;
+
   // Limpe a árvore pelo percurso pos-ordem
-  if (no) {
-    LimparArvoreRecursiva(no->esq);
-    LimparArvoreRecursiva(no->dir);
-    free(no);
-  }
+  LimparArvoreRecursiva(no->esq);
+  LimparArvoreRecursiva(no->dir);
+  free(no);
 }
 
 // Função que limpa a árvore
@@ -240,7 +248,7 @@ itemNo* EncontrarNoLivre(Arvore* arvore) {
 Boolean InserirValorAutomaticamente(Arvore* arvore, TipoValor valor) {
   // Encontra um nó livre
   itemNo* noLivre = EncontrarNoLivre(arvore);
-  Lado lado;
+  Lado lado = INDEFINIDO;
 
   // Verifica qual lado que está livre
   if (noLivre && !noLivre->esq)
@@ -431,6 +439,7 @@ int main(void) {
   }
 
   LimparArvore(arvore);
+  free(arvore);
 
   return 0;
 }
