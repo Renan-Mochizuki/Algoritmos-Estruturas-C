@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define FALSE 0
 #define TRUE 1
@@ -29,15 +30,14 @@ typedef struct arvore {
 // Função recursiva que imprime os elementos da árvore
 void ImprimirValoresRecursiva(Arvore* arvore, itemNo* no) {
   // Faça o percurso in-ordem
-  if (no) {
-    ImprimirValoresRecursiva(arvore, no->esq);
-    // Destacando a raiz na impressão
-    if (no == arvore->raiz)
-      printf("*%d* ", no->valor);
-    else
-      printf("%d ", no->valor);
-    ImprimirValoresRecursiva(arvore, no->dir);
-  }
+  if (!no) return;
+  ImprimirValoresRecursiva(arvore, no->esq);
+  // Destacando a raiz na impressão
+  if (no == arvore->raiz)
+    printf("*%d* ", no->valor);
+  else
+    printf("%d ", no->valor);
+  ImprimirValoresRecursiva(arvore, no->dir);
 }
 
 // Função que imprime os elementos da árvore
@@ -52,6 +52,8 @@ void ImprimirValores(Arvore* arvore) {
   ImprimirValoresRecursiva(arvore, arvore->raiz);
   printf("\n\n");
 }
+
+void ImprimirArvore(Arvore* arvore);
 
 // Função que retorna o ponteiro para a árvore
 Arvore* CriarArvore() {
@@ -250,7 +252,7 @@ Boolean InserirValorRecursiva(Arvore *arvore, itemNo *noAtual, itemNo *noPai, it
 
   // Se o nó estiver desbalanceado
   if (balancoNoAtual >= 2 || balancoNoAtual <= -2) {
-    ImprimirValores(arvore);
+    ImprimirArvore(arvore);
     ImprimirAvisoDesbalanceamento(noAtual, lado);
 
     if(lado == ESQUERDO) 
@@ -408,11 +410,10 @@ Boolean RemoverValor(Arvore* arvore, TipoValor valor) {
 // Função recursiva que limpa a árvore
 void LimparArvoreRecursiva(itemNo* no) {
   // Limpe a árvore pelo percurso pos-ordem
-  if (no) {
-    LimparArvoreRecursiva(no->esq);
-    LimparArvoreRecursiva(no->dir);
-    free(no);
-  }
+  if (!no) return;
+  LimparArvoreRecursiva(no->esq);
+  LimparArvoreRecursiva(no->dir);
+  free(no);
 }
 
 // Função que limpa a árvore
@@ -475,20 +476,208 @@ void ImprimirRotaDoNo(Arvore* arvore, itemNo* no) {
   printf("\n\n");
 }
 
+// Função recursiva que calcula a altura de uma árvore
+int CalcularAlturaRecursiva(itemNo* no) {
+  // Se o nó for NULL, a altura é -1
+  if (!no) return -1;
+
+  // Calcula a altura das subárvores esquerda e direita
+  int alturaEsquerda = CalcularAlturaRecursiva(no->esq);
+  int alturaDireita = CalcularAlturaRecursiva(no->dir);
+
+  // Retorna a maior altura entre as subárvores da esquerda e direita mais 1
+  return RetornarMaior(alturaEsquerda, alturaDireita) + 1;
+}
+
+// Função que retorna a altura da árvore
+int CalcularAltura(Arvore* arvore) {
+  return CalcularAlturaRecursiva(arvore->raiz);
+}
+
+/* -- Estruturas e funções para fazer a impressão da árvore -- */
+typedef struct nodeLista {
+  TipoValor *valores;
+  int livre;
+  struct nodeLista *proximo;
+} itemNoLista;
+
+typedef struct {
+  int tamanho;
+  itemNoLista *primeiro;
+} ListaLigada;
+
+ListaLigada *CriarLista() {
+  ListaLigada *lista = malloc(sizeof(ListaLigada));
+  lista->tamanho = 0;
+  lista->primeiro = NULL;
+  return lista;
+}
+
+itemNoLista *CriarNoLista(int indice) {
+  itemNoLista *itemNovo = malloc(sizeof(itemNoLista));
+  // Definindo a quantidade máxima sendo 2^nivel
+  int quantidadeMaximaPorNivel = (int)pow(2, indice);
+  itemNovo->valores = malloc(sizeof(TipoValor) * quantidadeMaximaPorNivel);
+  itemNovo->livre = 0;
+  itemNovo->proximo = NULL;
+  return itemNovo;
+}
+
+void InserirLista(ListaLigada *lista, TipoValor valor, int indice) {
+  if(!lista->primeiro) {
+    itemNoLista *itemNovo = CriarNoLista(indice);
+    lista->tamanho++;
+    lista->primeiro = itemNovo;
+  }
+
+  itemNoLista *itemAtual = lista->primeiro;
+  itemNoLista *itemAnterior = NULL;
+  
+  // Loop que percorre até o nó do indice passado
+  for(int i = 0; i < indice && itemAtual; i++) {
+    itemAnterior = itemAtual;
+    itemAtual = itemAtual->proximo;
+  }
+
+  // Declarando novo nó
+  if(!itemAtual){
+    itemNoLista *itemNovo = CriarNoLista(indice);
+    lista->tamanho++;
+    itemAnterior->proximo = itemNovo;
+    itemAtual = itemNovo;
+  }
+
+  // Insere o valor no nó
+  itemAtual->valores[itemAtual->livre] = valor;
+  itemAtual->livre++;
+}
+
+void LimparLista(ListaLigada *lista) {
+  itemNoLista *itemAtual = lista->primeiro;
+
+  // Loop que percorre a lista até o NULL
+  while (itemAtual != NULL) {
+    itemNoLista *itemProximo = itemAtual->proximo;
+    // Libera o itemAtual e avança para o próximo
+    free(itemAtual);
+    itemAtual = itemProximo;
+  }
+}
+
+// Função recursiva que percorre a árvore na pré-ordem e insere os valores em uma lista ligada
+void PercorrerArvoreLista(itemNo* no, int alturaAtual, ListaLigada* lista, int maiorAltura) {
+  // Se o no passado não existir (chegou ao fim da subárvore), insira o valor -1
+  if (!no) {
+    InserirLista(lista, -1, alturaAtual);
+
+    // Loop para garantir que a visualização esteja correta quando houver um outro nó dois níveis 
+    // mais baixo (desbalanceamento), inserindo dois valores vazios no filho
+    for(int i = alturaAtual + 1; i < maiorAltura + 1; i++) {
+      // Loop para inserir o valor vazio a quantidade de vezes de acordo com a maior altura
+      for(int j = 0; j < (int)pow(2, i - maiorAltura + 1); j++) {
+        InserirLista(lista, -1, i);
+      }
+    }
+    return;
+  }
+
+  InserirLista(lista, no->valor, alturaAtual);
+
+  PercorrerArvoreLista(no->esq, alturaAtual + 1, lista, maiorAltura);
+
+  PercorrerArvoreLista(no->dir, alturaAtual + 1, lista, maiorAltura);
+}
+
+// Função que imprime a árvore de maneira gráfica
+void ImprimirArvore(Arvore* arvore) {
+  // Se a árvore estiver vazia
+  if (!arvore->raiz) {
+    printf("\nA arvore esta vazia\n\n");
+    return;
+  }
+
+  ListaLigada *lista = CriarLista();
+  int maiorAltura = CalcularAltura(arvore);
+  int tamanhoCaractere = 2;
+
+  PercorrerArvoreLista(arvore->raiz, 0, lista, maiorAltura);
+
+  itemNoLista *itemAtual = lista->primeiro;
+  // Subtraindo 2 para não imprimir o último nível
+  int ultimoNivel = lista->tamanho - 2;
+
+  printf("\nArvore:\n");
+
+  // Loop que percorre os nós da lista
+  for(int i = 0; i < lista->tamanho - 1; i++) {
+    int quantidadeMaximaPorNivel = (int)pow(2, i);
+    int larguraCantos = (int)pow(2, ultimoNivel - i - 1) * 2 - 1;
+    int larguraMeio = (int)pow(2, ultimoNivel - i) * 2 - 1;
+
+    // Loop para imprimir os espaços vazios antes dos valores (formato de pirâmide)
+    for(int j = 0; j < larguraCantos * tamanhoCaractere; j++){
+      printf(" ");
+    }
+
+    // Loop que percorre os valores da array do nó atual
+    for(int k = 0; k < quantidadeMaximaPorNivel; k++) {
+
+      // Se k for maior que a quantidade de valores do nó atual, continue para evitar acesso indevido
+      if (k >= itemAtual->livre) continue;
+
+      int valorAtual = itemAtual->valores[k];
+      int quantidadeDigitos = valorAtual == 0 ? 1 : (int)log10(valorAtual) + 1;
+
+      // Se o valor for -1, imprima espaços vazios
+      if(valorAtual == -1) {
+        // Loop para imprimir espaços vazios de acordo com o tamanho do caractere
+        for(int l=0; l < tamanhoCaractere; l++){
+          printf(" ");
+        }
+      } else {
+        // Cálculo de quantos espaços vazios deverão ser impressos ao redor do valor de acordo com seus digitos
+        int espacosNecessarios = tamanhoCaractere - quantidadeDigitos;
+        int espacoAntes = espacosNecessarios / 2;
+        int espacoDepois = espacosNecessarios - espacoAntes;
+        for(int m = 0; m < espacoAntes; m++){
+          printf(" ");
+        }
+        printf("%d", valorAtual);
+        for(int n = 0; n < espacoDepois; n++){
+          printf(" ");
+        }
+      }
+    
+      // Imprimindo espaços vazios entre os valores de acordo com o tamanho do caractere
+      for(int o = 0; o < larguraMeio * tamanhoCaractere; o++){
+        printf(" ");
+      }
+    }
+    printf("\n");
+    // Passando pro próximo nó
+    itemAtual = itemAtual->proximo;
+  }
+  printf("\n");
+  LimparLista(lista);
+  free(lista);
+}
+
 int main(void) {
   Arvore* arvore = CriarArvore();
   TipoValor valorDigitado;
   int escolha = 1;
 
-  while (escolha > 0 && escolha < 7) {
+  while (escolha > 0 && escolha < 9) {
     printf("\nQual acao deseja realizar?\n");
     printf("1 - Inserir valores na arvore\n");
     printf("2 - Remover valores\n");
     printf("3 - Buscar valores\n");
-    printf("4 - Ver quantos itens a arvore possui\n");
+    printf("4 - Imprimir valores\n");
     printf("5 - Imprimir arvore\n");
-    printf("6 - Limpar arvore\n");
-    printf("7 - Sair\n");
+    printf("6 - Ver quantos itens a arvore possui\n");
+    printf("7 - Ver altura da arvore\n");
+    printf("8 - Limpar arvore\n");
+    printf("9 - Sair\n");
 
     scanf("%d", &escolha);
     printf("\n");
@@ -507,7 +696,7 @@ int main(void) {
           Boolean funcaoSucedida = InserirValor(arvore, valorDigitado);
 
           if (funcaoSucedida)
-            ImprimirValores(arvore);
+            ImprimirArvore(arvore);
           else
             printf("\nO valor ja existe na arvore\n");
         }
@@ -521,7 +710,7 @@ int main(void) {
 
         printf("Digite um valor negativo para parar\n");
         while (valorDigitado >= 0) {
-          ImprimirValores(arvore);
+          ImprimirArvore(arvore);
           printf("Digite um valor para ser removido\n");
           scanf(FormatoValor, &valorDigitado);
 
@@ -549,7 +738,7 @@ int main(void) {
           itemNo* noEncontrado = BuscarValor(arvore, valorDigitado);
 
           if (noEncontrado) {
-            ImprimirValores(arvore);
+            ImprimirArvore(arvore);
             printf("Percurso do valor desde a raiz:\n");
             ImprimirRotaDoNo(arvore, noEncontrado);
           } else {
@@ -559,14 +748,24 @@ int main(void) {
         break;
 
       case 4:
-        printf("A arvore possui %d itens\n", ContarValores(arvore));
-        break;
-
-      case 5:
         ImprimirValores(arvore);
         break;
 
+      case 5:
+        ImprimirArvore(arvore);
+        break;
+
       case 6:
+        printf("A arvore possui %d itens\n", ContarValores(arvore));
+        break;
+
+      case 7:
+        printf("A arvore "); // Cortando o texto para poder declarar uma variavel dentro de um case
+        int altura = CalcularAltura(arvore);
+        printf(" possui altura %d, sendo assim, %d subniveis\n", altura, altura + 1);
+        break;
+
+      case 8:
         LimparArvore(arvore);
         printf("A arvore foi limpa\n");
         break;
@@ -574,6 +773,7 @@ int main(void) {
   }
 
   LimparArvore(arvore);
+  free(arvore);
 
   return 0;
 }

@@ -22,16 +22,16 @@ typedef struct arvore {
 
 // Função recursiva que imprime os elementos da árvore
 void ImprimirValoresRecursiva(Arvore* arvore, itemNo* no) {
+  if (!no) return;
+
   // Faça o percurso in-ordem
-  if (no) {
-    ImprimirValoresRecursiva(arvore, no->esq);
-    // Destacando a raiz na impressão
-    if (no == arvore->raiz)
-      printf("*%d* ", no->valor);
-    else
-      printf("%d ", no->valor);
-    ImprimirValoresRecursiva(arvore, no->dir);
-  }
+  ImprimirValoresRecursiva(arvore, no->esq);
+  // Destacando a raiz na impressão
+  if (no == arvore->raiz)
+    printf("*%d* ", no->valor);
+  else
+    printf("%d ", no->valor);
+  ImprimirValoresRecursiva(arvore, no->dir);
 }
 
 // Função que imprime os elementos da árvore
@@ -214,11 +214,10 @@ Boolean RemoverValor(Arvore* arvore, TipoValor valor) {
 // Função recursiva que limpa a árvore
 void LimparArvoreRecursiva(itemNo* no) {
   // Limpe a árvore pelo percurso pos-ordem
-  if (no) {
-    LimparArvoreRecursiva(no->esq);
-    LimparArvoreRecursiva(no->dir);
-    free(no);
-  }
+  if (!no) return;
+  LimparArvoreRecursiva(no->esq);
+  LimparArvoreRecursiva(no->dir);
+  free(no);
 }
 
 // Função que limpa a árvore
@@ -380,6 +379,7 @@ int main(void) {
   }
 
   LimparArvore(arvore);
+  free(arvore);
 
   return 0;
 }
