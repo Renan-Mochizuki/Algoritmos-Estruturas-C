@@ -8,103 +8,126 @@
 typedef int Boolean;
 typedef int TipoValor;
 
+typedef struct node {
+    TipoValor valor;
+    struct node * proximo;
+} itemNo;	
+
 typedef struct {
-    TipoValor * valores;
-    int inicio;
-    int fim;
-    int capacidade;
+    itemNo * primeiro;
+    itemNo * ultimo;
+    int tamanho;
 } Fila;
 
 // Função que retorna o ponteiro para uma fila sendo passado a capacidade
-Fila * CriarFila(int capacidade){
+Fila * CriarFila(){
     Fila * fila = malloc(sizeof(Fila));
-    fila->valores = malloc(capacidade * sizeof(TipoValor));
-    fila->capacidade = capacidade;
-    fila->inicio = 0;
-    fila->fim = 0;
+    fila->primeiro = NULL;
+    fila->ultimo = NULL;
+    fila->tamanho = 0;
     return fila;
 }
 
 // Função que limpa a fila
 void LimparFila(Fila * fila){
-    fila->inicio = 0;
-    fila->fim = 0;
+    itemNo *itemAtual = fila->primeiro;
+
+    // Loop que percorre a fila
+    for(int i = 0; i < fila->tamanho; i++){
+        itemNo *itemProximo = itemAtual->proximo;
+        // Libera o itemAtual e avança para o próximo
+        free(itemAtual);
+        itemAtual = itemProximo;
+    }
+
+    // Resetando parâmetros
+    fila->primeiro = NULL;
+    fila->ultimo = NULL;
+    fila->tamanho = 0;
 }
 
 // Função que destroi a fila
 void DestruirFila(Fila * fila){
-    free(fila->valores);
+    LimparFila(fila);
     free(fila);
 }
 
 // Função que imprime os valores da fila
 void ImprimirValores(Fila * fila){
-    if(fila->inicio == fila->fim){
+    if(fila->tamanho == 0){
         printf("\nA fila esta vazia\n");
         return;
     }
 
+    itemNo * itemAtual = fila->primeiro;
+
     printf("\nFila: ");
     // Loop que percorre a fila
-    for(int i = fila->inicio; i < fila->fim; i++){
-        printf("%d, ", fila->valores[i % fila->capacidade]);
+    for(int i = 0; i < fila->tamanho; i++){
+        printf("%d, ", itemAtual->valor);
+        itemAtual = itemAtual->proximo;
     }
     printf("\n\n");
 }
 
-// Função que retorna o tamanho da fila
-int RetornarTamanho(Fila * fila){
-    return fila->fim - fila->inicio;
-}
-
 // Função que vai inserir um valor no final da fila
 Boolean InserirValor(Fila * fila, TipoValor valor){
-    int tamanhoFila = RetornarTamanho(fila);
+    itemNo * novoItem = malloc(sizeof(itemNo));
+    novoItem->valor = valor;
+    novoItem->proximo = NULL;
 
-    // Se a fila estiver cheia, não é possível adicionar mais elementos
-    if(tamanhoFila == fila->capacidade) return FALSE;
+    // Se a fila estiver vazia
+    if(!fila->primeiro){
+        fila->primeiro = novoItem;
+        fila->ultimo = novoItem;
+    } else { // Fila não está vazia
+        itemNo * ultimoAtual = fila->ultimo;
+        ultimoAtual->proximo = novoItem;
 
-    // Insire o valor no fim da fila
-    // fila->fim % fila->capacidade garante que sempre utilizemos a array devidamente
-    // O próximo item depois do último da array, é o primeiro da array (como uma lista circular)
-    fila->valores[fila->fim % fila->capacidade] = valor;
-    fila->fim++;
+        // Atualiza o último item da fila
+        fila->ultimo = novoItem;
+    }
+
+    fila->tamanho++;
     return TRUE;
 }
 
 // Função que vai remover o primeiro valor da fila
 Boolean RemoverValor(Fila * fila) {
     // Se a fila estiver vazia
-    if (fila->inicio == fila->fim) return FALSE;
+    if (fila->tamanho == 0) return FALSE;
 
-    // Incrementa o índice de início para "remover"/ignorar o valor
-    fila->inicio++;
+    itemNo * primeiroItem = fila->primeiro;
+
+    // Alterando o primeiro da fila
+    fila->primeiro = primeiroItem->proximo;
+
+    free(primeiroItem);
+    fila->tamanho--;
+
     return TRUE;
 }
 
 // Função que busca um valor na fila
 int BuscarValor(Fila * fila, TipoValor valor){
-    // Loop que percorre as posições armazenadas da fila
-    for(int i = fila->inicio; i < fila->fim; i++){
-        // i % fila->capacidade, pois a fila é circular
-        if(fila->valores[i % fila->capacidade] == valor){
-            // Subtraindo fila->inicio e 1 para retornar 0 se o item estiver primeira posição
-            return i - fila->inicio;
+    itemNo * itemAtual = fila->primeiro;
+
+    // Loop que percorre a fila
+    for(int i = 0; i < fila->tamanho; i++){
+        if(itemAtual->valor == valor){
+            return i;
         }
+        itemAtual = itemAtual->proximo;
     }
 
     return -1;
 }
 
 int main(void){
-    int capacidade;
     TipoValor valorDigitado;
     int escolha = 1;
 
-    printf("Digite a capacidade da fila\n");
-    scanf("%d", &capacidade);
-
-    Fila* fila = CriarFila(capacidade);
+    Fila* fila = CriarFila();
 
     while (escolha > 0 && escolha < 7) {
         printf("\nQual acao deseja realizar?\n");
@@ -154,7 +177,7 @@ int main(void){
         }
 
         case 3:
-            if (RetornarTamanho(fila) == 0) {
+            if (fila->tamanho == 0) {
                 printf("A fila esta vazia\n");
                 break;
             }
@@ -169,15 +192,15 @@ int main(void){
                 int posicaoEncontrada = BuscarValor(fila, valorDigitado);
 
                 if (posicaoEncontrada == -1) {
-                    printf("\nO valor nao foi encontrado\n");
+                    printf("\nO valor nao foi encontrado\n\n");
                 } else {
-                    printf("\nO valor foi encontrado na posicao %d\n", posicaoEncontrada);
+                    printf("\nO valor foi encontrado na posicao %d\n\n", posicaoEncontrada);
                 }
             }
             break;
 
         case 4:
-            printf("A fila possui %d itens\n", RetornarTamanho(fila));
+            printf("A fila possui %d itens\n", fila->tamanho);
             break;
 
         case 5:
