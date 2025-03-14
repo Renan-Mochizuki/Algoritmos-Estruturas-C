@@ -88,7 +88,8 @@ int BuscarValor(Fila * fila, TipoValor valor){
     for(int i = fila->inicio; i < fila->fim; i++){
         // i % fila->capacidade, pois a fila é circular
         if(fila->valores[i % fila->capacidade] == valor){
-            return i - fila->inicio;
+            // Subtraindo fila->inicio e 1 para retornar 0 se o item estiver primeira posição
+            return i - fila->inicio - 1;
         }
     }
 
