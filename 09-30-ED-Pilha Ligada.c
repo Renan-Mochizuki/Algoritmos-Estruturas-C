@@ -8,29 +8,47 @@
 typedef int Boolean;
 typedef int TipoValor;
 
+typedef struct node {
+    TipoValor valor;
+    struct node * proximo;
+} itemNo;
+
 typedef struct {
-    TipoValor * valores;
+    itemNo * primeiro;
+    itemNo * ultimo;
     int tamanho;
-    int capacidade;
 } Pilha;
 
-// Função que retorna o ponteiro para uma pilha sendo passado a capacidade
-Pilha * CriarPilha(int capacidade){
+// Função que retorna o ponteiro para uma pilha
+Pilha * CriarPilha(){
     Pilha * pilha = malloc(sizeof(Pilha));
-    pilha->valores = malloc(capacidade * sizeof(TipoValor));
-    pilha->capacidade = capacidade;
+    pilha->primeiro = NULL;
+    pilha->ultimo = NULL;
     pilha->tamanho = 0;
     return pilha;
 }
 
 // Função que limpa a pilha
 void LimparPilha(Pilha * pilha){
+    itemNo *itemAtual = pilha->primeiro;
+
+    // Loop que percorre a pilha
+    while (itemAtual != NULL) {
+        itemNo *itemProximo = itemAtual->proximo;
+        // Libera o itemAtual e avança para o próximo
+        free(itemAtual);
+        itemAtual = itemProximo;
+    }
+
+    // Resetando parâmetros
+    pilha->primeiro = NULL;
+    pilha->ultimo = NULL;
     pilha->tamanho = 0;
 }
 
 // Função que destroi a pilha
 void DestruirPilha(Pilha * pilha){
-    free(pilha->valores);
+    LimparPilha(pilha);
     free(pilha);
 }
 
@@ -41,21 +59,35 @@ void ImprimirValores(Pilha * pilha){
         return;
     }
 
+    itemNo * itemAtual = pilha->primeiro;
+
     printf("\nPilha: ");
     // Loop que percorre a pilha
     for(int i = 0; i < pilha->tamanho; i++){
-        printf("%d, ", pilha->valores[i]);
+        printf("%d, ", itemAtual->valor);
+        itemAtual = itemAtual->proximo;
     }
     printf("\n\n");
 }
 
 // Função que vai inserir um valor no topo da pilha
 Boolean InserirValor(Pilha * pilha, TipoValor valor){
-    // Se a pilha estiver cheia, não é possível adicionar mais elementos
-    if(pilha->tamanho == pilha->capacidade) return FALSE;
+    itemNo * novoItem = malloc(sizeof(itemNo));
+    novoItem->valor = valor;
+    novoItem->proximo = NULL;
+    
+    // Se a pilha estiver vazia
+    if(!pilha->primeiro){
+        pilha->primeiro = novoItem;
+        pilha->ultimo = novoItem;
+    } else { // pilha não está vazia
+        itemNo * ultimoAtual = pilha->ultimo;
+        ultimoAtual->proximo = novoItem;
 
-    // Insire o valor no topo da pilha
-    pilha->valores[pilha->tamanho] = valor;
+        // Atualiza o último item da pilha
+        pilha->ultimo = novoItem;
+    }
+
     pilha->tamanho++;
     return TRUE;
 }
@@ -65,32 +97,51 @@ Boolean RemoverValor(Pilha * pilha) {
     // Se a pilha estiver vazia
     if (pilha->tamanho == 0) return FALSE;
 
-    // Diminue o índice do topo para "remover"/ignorar o valor
+    // Se a pilha tiver apenas um item
+    if (pilha->tamanho == 1) {
+        free(pilha->primeiro);
+        pilha->primeiro = NULL;
+        pilha->ultimo = NULL;
+        pilha->tamanho = 0;
+        return TRUE;
+    }
+
+    itemNo * itemAtual = pilha->primeiro;
+
+    // Loop que percorre a pilha até o penúltimo item
+    for(int i = 0; i < pilha->tamanho - 2; i++){
+        itemAtual = itemAtual->proximo;
+    }
+
+    // Libera o último item da pilha
+    free(itemAtual->proximo);
+    itemAtual->proximo = NULL;
+    pilha->ultimo = itemAtual;
     pilha->tamanho--;
+
     return TRUE;
 }
 
 // Função que busca um valor na pilha
 int BuscarValor(Pilha * pilha, TipoValor valor){
+    itemNo * itemAtual = pilha->primeiro;
+
     // Loop que percorre a pilha
     for(int i = 0; i < pilha->tamanho; i++){
-        if(pilha->valores[i] == valor){
+        if(itemAtual->valor == valor){
             return i;
         }
+        itemAtual = itemAtual->proximo;
     }
 
     return -1;
 }
 
 int main(void){
-    int capacidade;
     TipoValor valorDigitado;
     int escolha = 1;
 
-    printf("Digite a capacidade da pilha\n");
-    scanf("%d", &capacidade);
-
-    Pilha * pilha = CriarPilha(capacidade);
+    Pilha * pilha = CriarPilha();
 
     while (escolha > 0 && escolha < 7) {
         printf("\nQual acao deseja realizar?\n");

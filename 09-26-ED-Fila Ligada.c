@@ -19,7 +19,7 @@ typedef struct {
     int tamanho;
 } Fila;
 
-// Função que retorna o ponteiro para uma fila sendo passado a capacidade
+// Função que retorna o ponteiro para uma fila
 Fila * CriarFila(){
     Fila * fila = malloc(sizeof(Fila));
     fila->primeiro = NULL;
