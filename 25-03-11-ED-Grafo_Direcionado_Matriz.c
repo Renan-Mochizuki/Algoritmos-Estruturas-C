@@ -119,12 +119,10 @@ Boolean ValidarParametros(Grafo *grafo, int vertice1, int vertice2) {
 // Função que insere uma aresta
 Boolean InserirAresta(Grafo *grafo, int vertice1, int vertice2) {
   if (!ValidarParametros(grafo, vertice1, vertice2)) return FALSE;
-  if (vertice1 == vertice2) return FALSE;
 
   // Verificação para garantir que o numArestas não aumente caso a aresta já existir
   if (grafo->matriz[vertice1][vertice2] == FALSE) {
     grafo->matriz[vertice1][vertice2] = TRUE;
-    grafo->matriz[vertice2][vertice1] = TRUE;
     grafo->numArestas++;
   }
 
@@ -138,7 +136,6 @@ Boolean RemoveAresta(Grafo *grafo, int vertice1, int vertice2) {
   // Verificação para garantir que o numArestas não diminua caso a aresta já existir
   if (grafo->matriz[vertice1][vertice2] != FALSE) {
     grafo->matriz[vertice1][vertice2] = FALSE;
-    grafo->matriz[vertice2][vertice1] = FALSE;
     grafo->numArestas--;
   }
   return TRUE;
@@ -163,8 +160,31 @@ int RetornarGrau(Grafo *grafo, int vertice) {
   for (int i = 0; i < grafo->numVertices; i++) {
     // Verifica se o vertice é vizinho do vertice que está sendo verificado
     if (grafo->matriz[vertice][i] == TRUE) grau++;
+    if (grafo->matriz[i][vertice] == TRUE) grau++;
   }
   return grau;
+}
+
+// Função que retorna o grau de entrada de um vértice
+int RetornarGrauEntrada(Grafo *grafo, int vertice) {
+  if (!ValidarParametros(grafo, vertice, 0)) return -1;
+
+  int grauEntrada = 0;
+  for (int i = 0; i < grafo->numVertices; i++) {
+    if (grafo->matriz[i][vertice] == TRUE) grauEntrada++;
+  }
+  return grauEntrada;
+}
+
+// Função que retorna o grau de saída de um vértice
+int RetornarGrauSaida(Grafo *grafo, int vertice) {
+  if (!ValidarParametros(grafo, vertice, 0)) return -1;
+
+  int grauSaida = 0;
+  for (int i = 0; i < grafo->numVertices; i++) {
+    if (grafo->matriz[vertice][i] == TRUE) grauSaida++;
+  }
+  return grauSaida;
 }
 
 // Função que verifica se um vértice possui vizinhos
@@ -307,13 +327,17 @@ int main(void) {
 
       if (vertice1 < 0) break;
 
-      int grau = RetornarGrau(grafo, vertice1);
+      int grauEntrada = RetornarGrauEntrada(grafo, vertice1);
+      int grauSaida = RetornarGrauEntrada(grafo, vertice1);
 
-      if (grau >= 0) {
-        printf("O grau do vertice %d e %d\n", vertice1, grau);
-      } else {
+      if (grauEntrada < 0 || grauSaida < 0){
         printf("O vertice nao existe\n");
+        break;
       }
+
+      printf("O grau de entrada do vertice %d e %d\n", vertice1, grauEntrada);
+      printf("O grau de saida do vertice %d e %d\n", vertice1, grauSaida);
+      printf("O grau total e %d\n", grauEntrada + grauSaida);
       break;
 
     case 7:
