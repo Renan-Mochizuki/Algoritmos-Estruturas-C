@@ -3,15 +3,17 @@
 
 #define FALSE 0
 #define TRUE 1
+#define INDEFINIDO -1
 #define FormatoValor "%d"
 
 typedef int Boolean;
 typedef int TipoValor;
+typedef float Peso;
 
 typedef struct {
   int numVertices;
   int numArestas;
-  Boolean **matriz;
+  Peso **matriz;
 } Grafo;
 
 // Função que retorna o ponteiro para um grafo se passando o número de vértices
@@ -26,7 +28,7 @@ Grafo *CriarGrafo(int maxVertices) {
   grafo->numArestas = 0;
 
   // Alocando uma array do tamanho dos vértices
-  grafo->matriz = malloc(sizeof(Boolean *) * maxVertices);
+  grafo->matriz = malloc(sizeof(Peso *) * maxVertices);
 
   // Se a alocação da array principal da matriz não foi bem sucedida
   if (!grafo->matriz) {
@@ -36,7 +38,7 @@ Grafo *CriarGrafo(int maxVertices) {
 
   // Loop que vai alocar uma array para cada posição da array principal
   for (int i = 0; i < maxVertices; i++) {
-    grafo->matriz[i] = malloc(sizeof(Boolean) * maxVertices);
+    grafo->matriz[i] = malloc(sizeof(Peso) * maxVertices);
 
     // Caso alguma a alocação de alguma array não foi bem sucedida
     if (!grafo->matriz[i]) {
@@ -51,7 +53,7 @@ Grafo *CriarGrafo(int maxVertices) {
 
     // Percorre cada item da array para inicializar a matriz com false
     for (int j = 0; j < maxVertices; j++) {
-      grafo->matriz[i][j] = FALSE;
+      grafo->matriz[i][j] = INDEFINIDO;
     }
   }
   return grafo;
@@ -75,7 +77,10 @@ void ImprimirValores(Grafo *grafo) {
     printf("\n%i", i);
     // Loop que percorre cada item da matriz
     for (int j = 0; j < nVertices; j++) {
-      printf("\t%1i", grafo->matriz[i][j]);
+      if (grafo->matriz[i][j] == INDEFINIDO) {
+        printf("\t  ");
+      } else
+        printf("\t%1.2f", grafo->matriz[i][j]);
     }
   }
   printf("\n\n");
@@ -88,7 +93,7 @@ void LimparGrafo(Grafo *grafo) {
   // Loops que percorrem cada item da matriz
   for (int i = 0; i < grafo->numVertices; i++) {
     for (int j = 0; j < grafo->numVertices; j++) {
-      grafo->matriz[i][j] = FALSE;
+      grafo->matriz[i][j] = INDEFINIDO;
     }
   }
 
@@ -117,15 +122,15 @@ Boolean ValidarParametros(Grafo *grafo, int vertice1, int vertice2) {
 }
 
 // Função que insere uma aresta
-Boolean InserirAresta(Grafo *grafo, int vertice1, int vertice2) {
+Boolean InserirAresta(Grafo *grafo, int vertice1, int vertice2, Peso peso) {
   if (!ValidarParametros(grafo, vertice1, vertice2)) return FALSE;
   // Verifica se vertice1 == vertice2 pois este grafo não permite self-loops
-  if (vertice1 == vertice2) return FALSE;
+  if (vertice1 == vertice2 || peso == INDEFINIDO) return FALSE;
 
   // Verificação para garantir que o numArestas não aumente caso a aresta já existir
-  if (grafo->matriz[vertice1][vertice2] == FALSE) {
-    grafo->matriz[vertice1][vertice2] = TRUE;
-    grafo->matriz[vertice2][vertice1] = TRUE;
+  if (grafo->matriz[vertice1][vertice2] == INDEFINIDO) {
+    grafo->matriz[vertice1][vertice2] = peso;
+    grafo->matriz[vertice2][vertice1] = peso;
     grafo->numArestas++;
   }
 
@@ -137,9 +142,9 @@ Boolean RemoveAresta(Grafo *grafo, int vertice1, int vertice2) {
   if (!ValidarParametros(grafo, vertice1, vertice2)) return FALSE;
 
   // Verificação para garantir que o numArestas não diminua caso a aresta já existir
-  if (grafo->matriz[vertice1][vertice2] != FALSE) {
-    grafo->matriz[vertice1][vertice2] = FALSE;
-    grafo->matriz[vertice2][vertice1] = FALSE;
+  if (grafo->matriz[vertice1][vertice2] != INDEFINIDO) {
+    grafo->matriz[vertice1][vertice2] = INDEFINIDO;
+    grafo->matriz[vertice2][vertice1] = INDEFINIDO;
     grafo->numArestas--;
   }
   return TRUE;
@@ -150,7 +155,7 @@ Boolean VerificarExistenciaAresta(Grafo *grafo, int vertice1, int vertice2) {
   if (!ValidarParametros(grafo, vertice1, vertice2)) return FALSE;
 
   // Verifica se a aresta existe
-  if (grafo->matriz[vertice1][vertice2] == TRUE) {
+  if (grafo->matriz[vertice1][vertice2] != INDEFINIDO) {
     return TRUE;
   }
   return FALSE;
@@ -163,7 +168,7 @@ int RetornarGrau(Grafo *grafo, int vertice) {
   int grau = 0;
   for (int i = 0; i < grafo->numVertices; i++) {
     // Verifica se o vertice é vizinho do vertice que está sendo verificado
-    if (grafo->matriz[vertice][i] == TRUE) grau++;
+    if (grafo->matriz[vertice][i] != INDEFINIDO) grau++;
   }
   return grau;
 }
@@ -173,7 +178,7 @@ Boolean VerificarPossuiVizinho(Grafo *grafo, int vertice) {
   if (!ValidarParametros(grafo, vertice, 0)) return FALSE;
 
   for (int i = 0; i < grafo->numVertices; i++) {
-    if (grafo->matriz[vertice][i] == TRUE) return TRUE;
+    if (grafo->matriz[vertice][i] != INDEFINIDO) return TRUE;
   }
   return FALSE;
 }
@@ -217,6 +222,7 @@ int main(void) {
     valorDigitado = 0;
 
     int vertice1, vertice2;
+    Peso peso = 0.0f;
 
     switch (escolha) {
     case 1:
@@ -232,7 +238,12 @@ int main(void) {
 
         if (vertice2 < 0) break;
 
-        Boolean funcaoSucedida = InserirAresta(grafo, vertice1, vertice2);
+        printf("Digite o peso da aresta\n");
+        scanf("%f", &peso);
+
+        if (peso < 0) break;
+
+        Boolean funcaoSucedida = InserirAresta(grafo, vertice1, vertice2, peso);
 
         if (funcaoSucedida)
           ImprimirValores(grafo);
@@ -310,11 +321,12 @@ int main(void) {
 
       int grau = RetornarGrau(grafo, vertice1);
 
-      if (grau >= 0) {
-        printf("O grau do vertice %d e %d\n", vertice1, grau);
-      } else {
+      if (grau < 0){
         printf("O vertice nao existe\n");
+        break;
       }
+
+      printf("O grau do vertice %d e %d\n", vertice1, grau);
       break;
 
     case 7:
