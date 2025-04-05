@@ -184,6 +184,43 @@ int RetornarNumeroArestas(Grafo *grafo) {
   return grafo->numArestas; 
 }
 
+// Função recursiva que visita todos os vértices adjacentes a um vértice passado
+void VisitarGrafoProfundidade(Grafo *grafo, int vertice, Boolean *visitado, int verticeAnterior) {
+  visitado[vertice] = TRUE;
+  printf("Visitando o vertice %d (anterior: %d)\n", vertice, verticeAnterior);
+
+  // Loop que percorre cada item da matriz para um determinado vertice
+  for (int i = 0; i < grafo->numVertices; i++) {
+    // Se o vertice i é adjacente ao vertice atual e ainda não foi visitado
+    if (grafo->matriz[vertice][i] == TRUE && !visitado[i]) {
+      VisitarGrafoProfundidade(grafo, i, visitado, vertice);
+    }
+  }
+}
+
+// Função que visita o grafo por profundidade percorrendo todos os vértices
+void BuscaProfundidade(Grafo *grafo){
+  if (!ValidarParametros(grafo, 0, 0)) return;
+
+  // Alocando um array para verificar se o vertice foi visitado
+  Boolean *visitado = malloc(sizeof(Boolean) * grafo->numVertices);
+
+  // Inicializando o array com FALSE
+  for (int i = 0; i < grafo->numVertices; i++) {
+    visitado[i] = FALSE;
+  }
+
+  // Loop que percorre cada item da matriz
+  for (int i = 0; i < grafo->numVertices; i++) {
+    // Se o vertice ainda não foi visitado, chama a função recursiva
+    if (!visitado[i]) {
+      VisitarGrafoProfundidade(grafo, i, visitado, -1);
+    }
+  }
+
+  free(visitado);
+}
+
 int main(void) {
   TipoValor valorDigitado = 0;
   int tamanhoDigitado = 0;
@@ -199,7 +236,7 @@ int main(void) {
     return 1;
   }
 
-  while (escolha > 0 && escolha < 9) {
+  while (escolha > 0 && escolha < 10) {
     printf("\nQual acao deseja realizar?\n");
     printf("1 - Inserir uma aresta\n");
     printf("2 - Remover uma aresta\n");
@@ -209,7 +246,8 @@ int main(void) {
     printf("6 - Calcular grau de um vertice\n");
     printf("7 - Imprimir grafo\n");
     printf("8 - Limpar grafo\n");
-    printf("9 - Sair\n");
+    printf("9 - Visitar grafo por profundidade\n");
+    printf("10 - Sair\n");
 
     scanf("%d", &escolha);
     printf("\n");
@@ -310,11 +348,12 @@ int main(void) {
 
       int grau = RetornarGrau(grafo, vertice1);
 
-      if (grau >= 0) {
-        printf("O grau do vertice %d e %d\n", vertice1, grau);
-      } else {
+      if (grau < 0){
         printf("O vertice nao existe\n");
+        break;
       }
+
+      printf("O grau do vertice %d e %d\n", vertice1, grau);
       break;
 
     case 7:
@@ -324,6 +363,11 @@ int main(void) {
     case 8:
       LimparGrafo(grafo);
       printf("O grafo foi limpo\n");
+      break;
+
+    case 9:
+      printf("Visitando o grafo por profundidade\n");
+      BuscaProfundidade(grafo);
       break;
     }
   }
