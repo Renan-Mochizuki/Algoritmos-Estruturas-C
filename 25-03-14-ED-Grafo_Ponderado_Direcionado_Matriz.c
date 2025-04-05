@@ -342,7 +342,7 @@ int main(void) {
       if (vertice1 < 0) break;
 
       int grauEntrada = RetornarGrauEntrada(grafo, vertice1);
-      int grauSaida = RetornarGrauEntrada(grafo, vertice1);
+      int grauSaida = RetornarGrauSaida(grafo, vertice1);
 
       if (grauEntrada < 0 || grauSaida < 0){
         printf("O vertice nao existe\n");
