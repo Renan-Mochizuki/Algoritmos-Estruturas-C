@@ -208,7 +208,7 @@ int main(void) {
     printf("5 - Verificar se um vertice possui vizinhos\n");
     printf("6 - Calcular grau de um vertice\n");
     printf("7 - Imprimir grafo\n");
-    printf("8 - Limpar arvore\n");
+    printf("8 - Limpar grafo\n");
     printf("9 - Sair\n");
 
     scanf("%d", &escolha);
@@ -323,7 +323,7 @@ int main(void) {
 
     case 8:
       LimparGrafo(grafo);
-      printf("o Grafo foi limpo\n");
+      printf("O grafo foi limpo\n");
       break;
     }
   }
