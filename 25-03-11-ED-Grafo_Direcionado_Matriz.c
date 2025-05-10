@@ -203,6 +203,49 @@ int RetornarNumeroArestas(Grafo *grafo) {
   return grafo->numArestas; 
 }
 
+// Função recursiva que visita todos os vértices adjacentes a um vértice passado
+void VisitarGrafoProfundidade(Grafo *grafo, int vertice, Boolean *visitado, int verticeAnterior) {
+  visitado[vertice] = TRUE;
+  printf("Visitando o vertice %d (anterior: %d)\n", vertice, verticeAnterior);
+
+  // Loop que percorre cada item da matriz para um determinado vertice
+  for (int i = 0; i < grafo->numVertices; i++) {
+    // Se o vertice i é adjacente ao vertice atual e ainda não foi visitado
+    if (grafo->matriz[vertice][i] == TRUE && !visitado[i]) {
+      VisitarGrafoProfundidade(grafo, i, visitado, vertice);
+    }
+  }
+}
+
+// Função que visita o grafo por profundidade percorrendo todos os vértices
+void BuscaProfundidade(Grafo *grafo){
+  if (!ValidarParametros(grafo, 0, 0)) return;
+
+  // Alocando um array para verificar se o vertice foi visitado
+  Boolean *visitado = malloc(sizeof(Boolean) * grafo->numVertices);
+  
+  // Se a alocação não foi bem sucedida
+  if (!visitado) {
+    printf("Erro ao alocar memória para o array de visitados\n");
+    return;
+  }
+
+  // Inicializando o array com FALSE
+  for (int i = 0; i < grafo->numVertices; i++) {
+    visitado[i] = FALSE;
+  }
+
+  // Loop que percorre cada item da matriz
+  for (int i = 0; i < grafo->numVertices; i++) {
+    // Se o vertice ainda não foi visitado, chama a função recursiva
+    if (!visitado[i]) {
+      VisitarGrafoProfundidade(grafo, i, visitado, -1);
+    }
+  }
+
+  free(visitado);
+}
+
 int main(void) {
   TipoValor valorDigitado = 0;
   int tamanhoDigitado = 0;
@@ -218,7 +261,7 @@ int main(void) {
     return 1;
   }
 
-  while (escolha > 0 && escolha < 9) {
+  while (escolha > 0 && escolha < 10) {
     printf("\nQual acao deseja realizar?\n");
     printf("1 - Inserir uma aresta\n");
     printf("2 - Remover uma aresta\n");
@@ -226,9 +269,10 @@ int main(void) {
     printf("4 - Verificar se uma aresta existe\n");
     printf("5 - Verificar se um vertice possui vizinhos\n");
     printf("6 - Calcular grau de um vertice\n");
-    printf("7 - Imprimir grafo\n");
-    printf("8 - Limpar grafo\n");
-    printf("9 - Sair\n");
+    printf("7 - Visitar grafo por profundidade\n");
+    printf("8 - Imprimir grafo\n");
+    printf("9 - Limpar grafo\n");
+    printf("10 - Sair\n");
 
     scanf("%d", &escolha);
     printf("\n");
@@ -341,10 +385,15 @@ int main(void) {
       break;
 
     case 7:
-      ImprimirValores(grafo);
+      printf("Visitando o grafo por profundidade\n");
+      BuscaProfundidade(grafo);
       break;
 
     case 8:
+      ImprimirValores(grafo);
+      break;
+
+    case 9:
       LimparGrafo(grafo);
       printf("O grafo foi limpo\n");
       break;

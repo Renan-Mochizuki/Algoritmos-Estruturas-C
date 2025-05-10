@@ -77,7 +77,7 @@ void LimparGrafo(Grafo *grafo) {
   // Loops que percorrem cada item da array e apaga cada nó
   for (int i = 0; i < grafo->numVertices; i++) {
     No *noAtual = grafo->lista[i];
-    while(noAtual){
+    while (noAtual) {
       No *apagar = noAtual;
       noAtual = noAtual->proximo;
       free(apagar);
@@ -94,7 +94,7 @@ void DestruirGrafo(Grafo *grafo) {
   // Loops que percorrem cada item da array e apaga cada nó
   for (int i = 0; i < grafo->numVertices; i++) {
     No *noAtual = grafo->lista[i];
-    while(noAtual){
+    while (noAtual) {
       No *apagar = noAtual;
       noAtual = noAtual->proximo;
       free(apagar);
@@ -118,7 +118,7 @@ Boolean InserirArestaLista(Grafo *grafo, int vertice1, int vertice2) {
   No *noAtual = grafo->lista[vertice1];
   No *noAnterior = NULL;
 
-  // Loop que percorre a lista até a posição de ordenação correta ou até o NULL 
+  // Loop que percorre a lista até a posição de ordenação correta ou até o NULL
   while (noAtual && noAtual->vertice < vertice2) {
     noAnterior = noAtual;
     noAtual = noAtual->proximo;
@@ -134,11 +134,11 @@ Boolean InserirArestaLista(Grafo *grafo, int vertice1, int vertice2) {
   novoNo->proximo = noAtual;
 
   // Se não tiver anterior, então altere o primeiro nó
-  if(!noAnterior) {
+  if (!noAnterior) {
     grafo->lista[vertice1] = novoNo;
     return TRUE;
   }
-  
+
   noAnterior->proximo = novoNo;
 
   return TRUE;
@@ -152,8 +152,8 @@ Boolean InserirAresta(Grafo *grafo, int vertice1, int vertice2) {
 
   Boolean noFoiInserido = InserirArestaLista(grafo, vertice1, vertice2);
   InserirArestaLista(grafo, vertice2, vertice1);
-  
-  if(noFoiInserido) {
+
+  if (noFoiInserido) {
     grafo->numArestas++;
   }
 
@@ -165,7 +165,7 @@ Boolean RemoverArestaLista(Grafo *grafo, int vertice1, int vertice2) {
   No *noAtual = grafo->lista[vertice1];
   No *noAnterior = NULL;
 
-  // Loop que percorre a lista até a posição de ordenação correta ou até o NULL 
+  // Loop que percorre a lista até a posição de ordenação correta ou até o NULL
   while (noAtual && noAtual->vertice < vertice2) {
     noAnterior = noAtual;
     noAtual = noAtual->proximo;
@@ -177,12 +177,12 @@ Boolean RemoverArestaLista(Grafo *grafo, int vertice1, int vertice2) {
   }
 
   // Se não tiver anterior, então altere o primeiro nó
-  if(!noAnterior) {
+  if (!noAnterior) {
     grafo->lista[vertice1] = noAtual->proximo;
     free(noAtual);
     return TRUE;
   }
-  
+
   noAnterior->proximo = noAtual->proximo;
   free(noAtual);
 
@@ -195,8 +195,8 @@ Boolean RemoveAresta(Grafo *grafo, int vertice1, int vertice2) {
 
   Boolean noFoiInserido = RemoverArestaLista(grafo, vertice1, vertice2);
   RemoverArestaLista(grafo, vertice2, vertice1);
-  
-  if(noFoiInserido) {
+
+  if (noFoiInserido) {
     grafo->numArestas--;
   }
 
@@ -227,7 +227,7 @@ int RetornarGrau(Grafo *grafo, int vertice) {
   if (!ValidarParametros(grafo, vertice, 0)) return -1;
 
   int grau = 0;
-  
+
   No *noAtual = grafo->lista[vertice];
   while (noAtual) {
     grau++;
@@ -242,7 +242,7 @@ Boolean VerificarPossuiVizinho(Grafo *grafo, int vertice) {
   if (!ValidarParametros(grafo, vertice, 0)) return FALSE;
 
   // Se existir um nó na lista de adjacência do vértice, então ele possui vizinhos
-  if(grafo->lista[vertice]) {
+  if (grafo->lista[vertice]) {
     return TRUE;
   }
 
@@ -250,9 +250,54 @@ Boolean VerificarPossuiVizinho(Grafo *grafo, int vertice) {
 }
 
 // Função que retorna o número de arestas
-int RetornarNumeroArestas(Grafo *grafo) { 
-  if(!grafo) return -1;
-  return grafo->numArestas; 
+int RetornarNumeroArestas(Grafo *grafo) {
+  if (!grafo) return -1;
+  return grafo->numArestas;
+}
+
+// Função recursiva que visita todos os vértices adjacentes a um vértice passado
+void VisitarGrafoProfundidade(Grafo *grafo, int vertice, Boolean *visitado, int verticeAnterior) {
+  visitado[vertice] = TRUE;
+  printf("Visitando o vertice %d (anterior: %d)\n", vertice, verticeAnterior);
+
+  No *noAtual = grafo->lista[vertice];
+  // Loop que percorre cada item da lista para um determinado vertice
+  while (noAtual) {
+    // Se o vertice i é adjacente ao vertice atual e ainda não foi visitado
+    if (!visitado[noAtual->vertice]) {
+      VisitarGrafoProfundidade(grafo, noAtual->vertice, visitado, vertice);
+    }
+    noAtual = noAtual->proximo;
+  }
+}
+
+// Função que visita o grafo por profundidade percorrendo todos os vértices
+void BuscaProfundidade(Grafo *grafo) {
+  if (!ValidarParametros(grafo, 0, 0)) return;
+
+  // Alocando um array para verificar se o vertice foi visitado
+  Boolean *visitado = malloc(sizeof(Boolean) * grafo->numVertices);
+
+  // Se a alocação não foi bem sucedida
+  if (!visitado) {
+    printf("Erro ao alocar memória para o array de visitados\n");
+    return;
+  }
+
+  // Inicializando o array com FALSE
+  for (int i = 0; i < grafo->numVertices; i++) {
+    visitado[i] = FALSE;
+  }
+
+  // Loop que percorre cada item da matriz
+  for (int i = 0; i < grafo->numVertices; i++) {
+    // Se o vertice ainda não foi visitado, chama a função recursiva
+    if (!visitado[i]) {
+      VisitarGrafoProfundidade(grafo, i, visitado, -1);
+    }
+  }
+
+  free(visitado);
 }
 
 int main(void) {
@@ -270,7 +315,7 @@ int main(void) {
     return 1;
   }
 
-  while (escolha > 0 && escolha < 9) {
+  while (escolha > 0 && escolha < 10) {
     printf("\nQual acao deseja realizar?\n");
     printf("1 - Inserir uma aresta\n");
     printf("2 - Remover uma aresta\n");
@@ -278,9 +323,10 @@ int main(void) {
     printf("4 - Verificar se uma aresta existe\n");
     printf("5 - Verificar se um vertice possui vizinhos\n");
     printf("6 - Calcular grau de um vertice\n");
-    printf("7 - Imprimir grafo\n");
-    printf("8 - Limpar grafo\n");
-    printf("9 - Sair\n");
+    printf("7 - Visitar grafo por profundidade\n");
+    printf("8 - Imprimir grafo\n");
+    printf("9 - Limpar grafo\n");
+    printf("10 - Sair\n");
 
     scanf("%d", &escolha);
     printf("\n");
@@ -389,10 +435,15 @@ int main(void) {
       break;
 
     case 7:
-      ImprimirValores(grafo);
+      printf("Visitando o grafo por profundidade\n");
+      BuscaProfundidade(grafo);
       break;
 
     case 8:
+      ImprimirValores(grafo);
+      break;
+
+    case 9:
       LimparGrafo(grafo);
       printf("O grafo foi limpo\n");
       break;
