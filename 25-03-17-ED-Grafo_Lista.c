@@ -560,6 +560,84 @@ Boolean BuscaProfundidadeVerificarCiclo(Grafo *grafo) {
   return possuiAlgumCiclo;
 }
 
+// Função recursiva que visita todos os vértices adjacentes a um vértice passado
+void VisitarGrafoProfundidadeComponenteConexo(Grafo *grafo, int vertice, Boolean *visitado, int componenteAtual, int *componentesConexos) {
+  visitado[vertice] = TRUE;
+  componentesConexos[vertice] = componenteAtual;
+
+  printf("Visitando o vertice %d (componente: %d)\n", vertice, componenteAtual);
+
+  No *noAtual = grafo->lista[vertice];
+  // Loop que percorre cada item da lista para um determinado vertice
+  while (noAtual) {
+    // Se o vertice i é adjacente ao vertice atual e ainda não foi visitado
+    if (!visitado[noAtual->vertice]) {
+      VisitarGrafoProfundidadeComponenteConexo(grafo, noAtual->vertice, visitado, componenteAtual, componentesConexos);
+    }
+    noAtual = noAtual->proximo;
+  }
+}
+
+// Função que visita o grafo por profundidade percorrendo todos os vértices
+int *BuscaProfundidadeComponenteConexo(Grafo *grafo) {
+  if (!ValidarParametros(grafo, 0, 0)) return NULL;
+
+  // Alocando um array para verificar se o vertice foi visitado e um array para armazenar os componentes conexos
+  Boolean *visitado = malloc(sizeof(Boolean) * grafo->numVertices);
+  int *componentesConexos = malloc(sizeof(int) * grafo->numVertices);
+
+  int componenteAtual = 0;
+
+  // Se a alocação não foi bem sucedida
+  if (!visitado) {
+    printf("Erro ao alocar memória para o array de visitados\n");
+    return NULL;
+  }
+
+  // Inicializando o array com FALSE
+  for (int i = 0; i < grafo->numVertices; i++) {
+    visitado[i] = FALSE;
+    componentesConexos[i] = -1;
+  }
+
+  // Loop que percorre cada item da lista
+  for (int i = 0; i < grafo->numVertices; i++) {
+    // Se o vertice ainda não foi visitado, chama a função recursiva
+    if (!visitado[i]) {
+      VisitarGrafoProfundidadeComponenteConexo(grafo, i, visitado, ++componenteAtual, componentesConexos);
+    }
+  }
+
+  free(visitado);
+  return componentesConexos;
+}
+
+// Função que imprime os componentes conexos
+void ImprimirComponentesConexos(Grafo *grafo, int *componentesConexos) {
+  if (!grafo || !componentesConexos) return;
+
+  int numVertices = grafo->numVertices;
+
+  // Descobrir o número máximo de componentes
+  int maxComponente = 0;
+  for (int i = 0; i < numVertices; i++) {
+    if (componentesConexos[i] > maxComponente) {
+      maxComponente = componentesConexos[i];
+    }
+  }
+
+  // Para cada componente, imprimir os vértices pertencentes a ele
+  for (int componente = 1; componente <= maxComponente; componente++) {
+    printf("Componente %d: ", componente);
+    for (int i = 0; i < numVertices; i++) {
+      if (componentesConexos[i] == componente) {
+        printf("%d ", i);
+      }
+    }
+    printf("\n");
+  }
+}
+
 int main(void) {
   TipoValor valorDigitado = 0;
   int tamanhoDigitado = 0;
@@ -588,7 +666,7 @@ int main(void) {
     printf("9 - Visitar grafo por profundidade mostrando cores e tempo\n");
     printf("10 - Encontrar caminho ate um destino\n");
     printf("11 - Verificar ciclos\n");
-    printf("12 - .\n");
+    printf("12 - Verificar componentes conexos\n");
     printf("13 - .\n");
     printf("14 - Limpar grafo\n");
     printf("15 - Sair\n");
@@ -748,7 +826,15 @@ int main(void) {
       break;
 
     case 12:
-      
+      printf("Verificando componentes conexos\n");
+      int *componentesConexos = BuscaProfundidadeComponenteConexo(grafo);
+      if (componentesConexos) {
+        printf("\nComponentes conexos:\n");
+        ImprimirComponentesConexos(grafo, componentesConexos);
+        free(componentesConexos);
+      } else {
+        printf("Erro ao verificar componentes conexos\n");
+      }
       break;
 
     case 13:

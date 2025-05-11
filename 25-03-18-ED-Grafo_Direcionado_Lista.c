@@ -607,7 +607,7 @@ void VisitarGrafoProfundidadeOrdenacaoTopologica(Grafo *grafo, int verticeAtual,
 }
 
 // Função que encontra o caminho entre dois vértices
-No *BuscaProfundidadOrdenacaoTopologica(Grafo *grafo) {
+No *BuscaProfundidadeOrdenacaoTopologica(Grafo *grafo) {
   if (!ValidarParametros(grafo, 0, 0)) {
     printf("Parâmetros inválidos\n");
     return NULL;
@@ -644,6 +644,188 @@ No *BuscaProfundidadOrdenacaoTopologica(Grafo *grafo) {
   return noSemCabeca;
 }
 
+Grafo *CriarGrafoTransposto(Grafo *grafo) {
+  if (!grafo) return NULL;
+
+  Grafo *grafoTransposto = CriarGrafo(grafo->numVertices);
+
+  if (!grafoTransposto) {
+    printf("Erro ao criar o grafo transposto\n");
+    return NULL;
+  }
+
+  // Loop que percorre cada item da lista
+  for (int i = 0; i < grafo->numVertices; i++) {
+    No *noAtual = grafo->lista[i];
+    while (noAtual) {
+      InserirAresta(grafoTransposto, noAtual->vertice, i);
+      noAtual = noAtual->proximo;
+    }
+  }
+
+  return grafoTransposto;
+}
+
+// Função recursiva que visita todos os vértices adjacentes a um vértice passado
+void VisitarGrafoProfundidadeComponenteConexo(Grafo *grafo, int vertice, Boolean *visitado, int componenteAtual, int *componentesConexos) {
+  visitado[vertice] = TRUE;
+  componentesConexos[vertice] = componenteAtual;
+
+  printf("Visitando o vertice %d (componente: %d)\n", vertice, componenteAtual);
+
+  No *noAtual = grafo->lista[vertice];
+  // Loop que percorre cada item da lista para um determinado vertice
+  while (noAtual) {
+    // Se o vertice i é adjacente ao vertice atual e ainda não foi visitado
+    if (!visitado[noAtual->vertice]) {
+      VisitarGrafoProfundidadeComponenteConexo(grafo, noAtual->vertice, visitado, componenteAtual, componentesConexos);
+    }
+    noAtual = noAtual->proximo;
+  }
+}
+
+// Função que visita o grafo por profundidade percorrendo todos os vértices
+int *BuscaProfundidadeComponenteFortementeConexo(Grafo *grafo) {
+  if (!ValidarParametros(grafo, 0, 0)) return NULL;
+
+  // Alocando um array para verificar se o vertice foi visitado e um array para armazenar os componentes conexos
+  Boolean *visitado = malloc(sizeof(Boolean) * grafo->numVertices);
+  int *componentesConexos = malloc(sizeof(int) * grafo->numVertices);
+
+  int componenteAtual = 0;
+
+  // Se a alocação não foi bem sucedida
+  if (!visitado) {
+    printf("Erro ao alocar memória para o array de visitados\n");
+    return NULL;
+  }
+
+  // Inicializando o array com FALSE
+  for (int i = 0; i < grafo->numVertices; i++) {
+    visitado[i] = FALSE;
+    componentesConexos[i] = -1;
+  }
+
+  No *ordenacaoTopologica = BuscaProfundidadeOrdenacaoTopologica(grafo);
+  Grafo *grafoTransposto = CriarGrafoTransposto(grafo);
+
+  if (!grafoTransposto) {
+    free(visitado);
+    free(componentesConexos);
+    return NULL;
+  }
+
+  No *noAtual = ordenacaoTopologica;
+  // Loop que percorre cada item da lista
+  while (noAtual) {
+    int vertice = noAtual->vertice;
+
+    // Se o vertice ainda não foi visitado, chama a função recursiva
+    if (!visitado[vertice]) {
+      componenteAtual++;
+      VisitarGrafoProfundidadeComponenteConexo(grafoTransposto, vertice, visitado, componenteAtual, componentesConexos);
+    }
+    noAtual = noAtual->proximo;
+  }
+
+  // Liberando a lista de ordenação topológica e o grafo transposto
+  DestruirLista(ordenacaoTopologica);
+  DestruirGrafo(grafoTransposto);
+  free(visitado);
+  return componentesConexos;
+}
+
+Grafo *CriarGrafoNaoDirecionado(Grafo *grafo) {
+  if (!grafo) return NULL;
+
+  Grafo *grafoNaoDirecionado = CriarGrafo(grafo->numVertices);
+
+  if (!grafoNaoDirecionado) {
+    printf("Erro ao criar o grafo não direcionado\n");
+    return NULL;
+  }
+
+  // Loop que percorre cada item da lista
+  for (int i = 0; i < grafo->numVertices; i++) {
+    No *noAtual = grafo->lista[i];
+    while (noAtual) {
+      InserirAresta(grafoNaoDirecionado, i, noAtual->vertice);
+      InserirAresta(grafoNaoDirecionado, noAtual->vertice, i);
+      noAtual = noAtual->proximo;
+    }
+  }
+
+  return grafoNaoDirecionado;
+}
+
+int *BuscaProfundidadeComponenteFracamenteConexo(Grafo *grafo) {
+  if (!grafo) return NULL;
+
+  // Criar o grafo não direcionado
+  Grafo *grafoNaoDirecionado = CriarGrafoNaoDirecionado(grafo);
+  if (!grafoNaoDirecionado) return NULL;
+
+  // Alocar arrays para verificar se o vértice foi visitado e armazenar os componentes conexos
+  Boolean *visitado = malloc(sizeof(Boolean) * grafo->numVertices);
+  int *componentesConexos = malloc(sizeof(int) * grafo->numVertices);
+
+  if (!visitado || !componentesConexos) {
+    printf("Erro ao alocar memória\n");
+    DestruirGrafo(grafoNaoDirecionado);
+    free(visitado);
+    free(componentesConexos);
+    return NULL;
+  }
+
+  // Inicializar os arrays
+  for (int i = 0; i < grafo->numVertices; i++) {
+    visitado[i] = FALSE;
+    componentesConexos[i] = -1;
+  }
+
+  int componenteAtual = 0;
+
+  // Realizar busca em profundidade para encontrar os componentes conexos
+  for (int i = 0; i < grafo->numVertices; i++) {
+    if (!visitado[i]) {
+      componenteAtual++;
+      VisitarGrafoProfundidadeComponenteConexo(grafoNaoDirecionado, i, visitado, componenteAtual, componentesConexos);
+    }
+  }
+
+  // Liberar o grafo não direcionado
+  DestruirGrafo(grafoNaoDirecionado);
+  free(visitado);
+
+  return componentesConexos;
+}
+
+// Função que imprime os componentes conexos
+void ImprimirComponentesConexos(Grafo *grafo, int *componentesConexos) {
+  if (!grafo || !componentesConexos) return;
+
+  int numVertices = grafo->numVertices;
+
+  // Descobrir o número máximo de componentes
+  int maxComponente = 0;
+  for (int i = 0; i < numVertices; i++) {
+    if (componentesConexos[i] > maxComponente) {
+      maxComponente = componentesConexos[i];
+    }
+  }
+
+  // Para cada componente, imprimir os vértices pertencentes a ele
+  for (int componente = 1; componente <= maxComponente; componente++) {
+    printf("Componente %d: ", componente);
+    for (int i = 0; i < numVertices; i++) {
+      if (componentesConexos[i] == componente) {
+        printf("%d ", i);
+      }
+    }
+    printf("\n");
+  }
+}
+
 int main(void) {
   TipoValor valorDigitado = 0;
   int tamanhoDigitado = 0;
@@ -659,7 +841,7 @@ int main(void) {
     return 1;
   }
 
-  while (escolha > 0 && escolha < 15) {
+  while (escolha > 0 && escolha < 17) {
     printf("\nQual acao deseja realizar?\n");
     printf("1 - Inserir uma aresta\n");
     printf("2 - Remover uma aresta\n");
@@ -672,10 +854,12 @@ int main(void) {
     printf("9 - Visitar grafo por profundidade mostrando cores e tempo\n");
     printf("10 - Encontrar caminho ate um destino\n");
     printf("11 - Verificar ciclos\n");
-    printf("12 - Imprimir ordenacao topologica\n");
-    printf("13 - .\n");
-    printf("14 - Limpar grafo\n");
-    printf("15 - Sair\n");
+    printf("12 - Verificar componentes fortemente conexos\n");
+    printf("13 - Verificar componentes fracamente conexos\n");
+    printf("14 - .\n");
+    printf("15 - Imprimir ordenacao topologica\n");
+    printf("16 - Limpar grafo\n");
+    printf("17 - Sair\n");
 
     scanf("%d", &escolha);
     printf("\n");
@@ -835,8 +1019,36 @@ int main(void) {
       break;
 
     case 12:
+      printf("Verificando componentes fortemente conexos\n");
+      int *componentesConexos = BuscaProfundidadeComponenteFortementeConexo(grafo);
+      if (componentesConexos) {
+        printf("\nComponentes fortemente conexos:\n");
+        ImprimirComponentesConexos(grafo, componentesConexos);
+        free(componentesConexos);
+      } else {
+        printf("Erro ao verificar componentes conexos\n");
+      }
+      break;
+
+    case 13:
+      printf("Verificando componentes fracamente conexos\n");
+      int *componentesConexosFracos = BuscaProfundidadeComponenteFracamenteConexo(grafo);
+      if (componentesConexosFracos) {
+        printf("\nComponentes conexos:\n");
+        ImprimirComponentesConexos(grafo, componentesConexosFracos);
+        free(componentesConexosFracos);
+      } else {
+        printf("Erro ao verificar componentes conexos\n");
+      }
+      break;
+
+    case 14:
+
+      break;
+
+    case 15:
       printf("Visitando o grafo por profundidade e imprimindo a ordenacao topologica\n");
-      No *noListaOrdenacao = BuscaProfundidadOrdenacaoTopologica(grafo);
+      No *noListaOrdenacao = BuscaProfundidadeOrdenacaoTopologica(grafo);
 
       if (noListaOrdenacao) {
         printf("A ordenacao topologica do grafo e:\n");
@@ -847,11 +1059,7 @@ int main(void) {
       }
       break;
 
-    case 13:
-
-      break;
-
-    case 14:
+    case 16:
       LimparGrafo(grafo);
       printf("O grafo foi limpo\n");
       break;
