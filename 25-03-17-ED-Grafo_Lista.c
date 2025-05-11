@@ -500,7 +500,8 @@ void VisitarGrafoProfundidadeVerificarCiclo(Grafo *grafo, int vertice, int *temp
       VisitarGrafoProfundidadeVerificarCiclo(grafo, verticeAtual, tempo, cor, tempoDescoberta, tempoTermino, anterior, possuiAlgumCiclo);
     }
     // Se o vertice atual é cinza e não é o anterior, então existe um ciclo
-    else if (anterior[vertice] != verticeAtual && cor[verticeAtual] == 1) {
+    // Não precisa perguntar se é cinza, já que não pode ser preto
+    else if (anterior[vertice] != verticeAtual) {
       printf("Ciclo encontrado entre %d e %d\n", vertice, verticeAtual);
       *possuiAlgumCiclo = TRUE;
     }
@@ -514,8 +515,8 @@ void VisitarGrafoProfundidadeVerificarCiclo(Grafo *grafo, int vertice, int *temp
 }
 
 // Função que visita o grafo por profundidade percorrendo todos os vértices
-void BuscaProfundidadeVerificarCiclo(Grafo *grafo) {
-  if (!ValidarParametros(grafo, 0, 0)) return;
+Boolean BuscaProfundidadeVerificarCiclo(Grafo *grafo) {
+  if (!ValidarParametros(grafo, 0, 0)) return FALSE;
 
   Boolean possuiAlgumCiclo = FALSE;
 
@@ -530,7 +531,7 @@ void BuscaProfundidadeVerificarCiclo(Grafo *grafo) {
   // Se a alocação não foi bem sucedida
   if (!cor || !tempoDescoberta || !tempoTermino || !anterior) {
     printf("Erro ao alocar memória para a array para a busca em profundidade\n");
-    return;
+    return FALSE;
   }
 
   // Inicializando as arrays
@@ -551,14 +552,12 @@ void BuscaProfundidadeVerificarCiclo(Grafo *grafo) {
     }
   }
 
-  if (possuiAlgumCiclo == FALSE) {
-    printf("O grafo nao possui ciclos\n");
-  }
-
   free(cor);
   free(tempoDescoberta);
   free(tempoTermino);
   free(anterior);
+
+  return possuiAlgumCiclo;
 }
 
 int main(void) {
@@ -589,7 +588,7 @@ int main(void) {
     printf("9 - Visitar grafo por profundidade mostrando cores e tempo\n");
     printf("10 - Encontrar caminho ate um destino\n");
     printf("11 - Verificar ciclos\n");
-    printf("12 - Imprimir ordenacao topologica\n");
+    printf("12 - .\n");
     printf("13 - .\n");
     printf("14 - Limpar grafo\n");
     printf("15 - Sair\n");
@@ -739,20 +738,17 @@ int main(void) {
 
     case 11:
       printf("Verificando se o grafo tem ciclos\n");
-      BuscaProfundidadeVerificarCiclo(grafo);
+
+      if (BuscaProfundidadeVerificarCiclo(grafo)) {
+        printf("O grafo é cíclico\n");
+      } else {
+        printf("O grafo é acíclico\n");
+      }
+
       break;
 
     case 12:
-      printf("Visitando o grafo por profundidade e imprimindo a ordenacao topologica\n");
-      No *noListaOrdenacao = BuscaProfundidadOrdenacaoTopologica(grafo);
-
-      if (noListaOrdenacao) {
-        printf("A ordenacao topologica do grafo e:\n");
-        ImprimirCaminhoLista(noListaOrdenacao);
-        DestruirLista(noListaOrdenacao);
-      } else {
-        printf("Nao existe ordenacao topologica para o grafo\n");
-      }
+      
       break;
 
     case 13:

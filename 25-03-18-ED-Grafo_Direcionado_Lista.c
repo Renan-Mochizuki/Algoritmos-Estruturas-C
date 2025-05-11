@@ -542,8 +542,8 @@ void VisitarGrafoProfundidadeVerificarCiclo(Grafo *grafo, int vertice, int *temp
 }
 
 // Função que visita o grafo por profundidade percorrendo todos os vértices
-void BuscaProfundidadeVerificarCiclo(Grafo *grafo) {
-  if (!ValidarParametros(grafo, 0, 0)) return;
+Boolean BuscaProfundidadeVerificarCiclo(Grafo *grafo) {
+  if (!ValidarParametros(grafo, 0, 0)) return FALSE;
 
   Boolean possuiAlgumCiclo = FALSE;
 
@@ -558,7 +558,7 @@ void BuscaProfundidadeVerificarCiclo(Grafo *grafo) {
   // Se a alocação não foi bem sucedida
   if (!cor || !tempoDescoberta || !tempoTermino || !anterior) {
     printf("Erro ao alocar memória para a array para a busca em profundidade\n");
-    return;
+    return FALSE;
   }
 
   // Inicializando as arrays
@@ -579,14 +579,12 @@ void BuscaProfundidadeVerificarCiclo(Grafo *grafo) {
     }
   }
 
-  if (possuiAlgumCiclo == FALSE) {
-    printf("O grafo nao possui ciclos\n");
-  }
-
   free(cor);
   free(tempoDescoberta);
   free(tempoTermino);
   free(anterior);
+
+  return possuiAlgumCiclo;
 }
 
 // Função recursiva que encontra o caminho entre dois vértices
@@ -827,7 +825,13 @@ int main(void) {
 
     case 11:
       printf("Verificando se o grafo tem ciclos\n");
-      BuscaProfundidadeVerificarCiclo(grafo);
+
+      if (BuscaProfundidadeVerificarCiclo(grafo)) {
+        printf("O grafo é cíclico\n");
+      } else {
+        printf("O grafo é acíclico\n");
+      }
+
       break;
 
     case 12:
