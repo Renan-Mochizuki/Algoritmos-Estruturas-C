@@ -385,6 +385,35 @@ No *CriarNovoNo(int vertice) {
   return novoNo;
 }
 
+// Função que imprime os valores da lista
+void ImprimirCaminhoLista(No *noLista) {
+  if (!noLista) {
+    return;
+  }
+
+  printf("%d", noLista->vertice);
+  noLista = noLista->proximo;
+
+  // Loop pra percorrer até o NULL
+  while (noLista != NULL) {
+    printf(" -> %d", noLista->vertice);
+    noLista = noLista->proximo;
+  }
+  printf("\n\n");
+}
+
+// Função que destroi a lista
+void DestruirLista(No *noLista) {
+  No *noAtual = noLista;
+
+  // Loop que percorre a lista até o NULL
+  while (noAtual != NULL) {
+    No *noProximo = noAtual->proximo;
+    free(noAtual);
+    noAtual = noProximo;
+  }
+}
+
 // Função recursiva que encontra o caminho entre dois vértices
 Boolean VisitarGrafoProfundidadeCaminho(Grafo *grafo, int verticeAtual, int verticeDestino, Boolean *visitado, No *noCabeca) {
   visitado[verticeAtual] = TRUE;
@@ -445,7 +474,7 @@ No *BuscaProfundidadeCaminho(Grafo *grafo, int verticeOrigem, int verticeDestino
     free(noCabeca);
     free(visitado);
     return noSemCabeca;
-  } 
+  }
 
   // Se não encontrou o caminho, libera a lista e retorna NULL
   free(visitado);
@@ -453,33 +482,83 @@ No *BuscaProfundidadeCaminho(Grafo *grafo, int verticeOrigem, int verticeDestino
   return NULL;
 }
 
-// Função que imprime os valores da lista
-void ImprimirCaminhoLista(No *noLista) {
-  if (!noLista) {
+// Função recursiva que visita todos os vértices adjacentes a um vértice passado
+void VisitarGrafoProfundidadeVerificarCiclo(Grafo *grafo, int vertice, int *tempo, int *cor, int *tempoDescoberta, int *tempoTermino, int *anterior, int *possuiAlgumCiclo) {
+  // Aumentando o tempo, marcando o vertice como cinza e atribuindo o tempo de descoberta
+  (*tempo)++;
+  cor[vertice] = 1;
+  tempoDescoberta[vertice] = *tempo;
+
+  No *noAtual = grafo->lista[vertice];
+  // Loop que percorre cada item da lista para um determinado vertice
+  while (noAtual) {
+    int verticeAtual = noAtual->vertice;
+    // Se o vertice i é adjacente ao vertice atual e ainda não foi visitado
+    if (cor[verticeAtual] == 0) {
+      // Atribuindo o vertice anterior
+      anterior[verticeAtual] = vertice;
+      VisitarGrafoProfundidadeVerificarCiclo(grafo, verticeAtual, tempo, cor, tempoDescoberta, tempoTermino, anterior, possuiAlgumCiclo);
+    }
+    // Se o vertice atual é cinza e não é o anterior, então existe um ciclo
+    else if (anterior[vertice] != verticeAtual && cor[verticeAtual] == 1) {
+      printf("Ciclo encontrado entre %d e %d\n", vertice, verticeAtual);
+      *possuiAlgumCiclo = TRUE;
+    }
+    noAtual = noAtual->proximo;
+  }
+
+  // Aumentando o tempo, marcando o vertice como preto e atribuindo o tempo de término
+  (*tempo)++;
+  cor[vertice] = 2;
+  tempoTermino[vertice] = *tempo;
+}
+
+// Função que visita o grafo por profundidade percorrendo todos os vértices
+void BuscaProfundidadeVerificarCiclo(Grafo *grafo) {
+  if (!ValidarParametros(grafo, 0, 0)) return;
+
+  Boolean possuiAlgumCiclo = FALSE;
+
+  // Alocando um array para armazenar a cor de cada vértice;
+  // Cor: 1 - Branco (Ainda não visitado), 2 - Cinza (Sendo processado), 3 - Preto (Finalizado)
+  // Tempo de descoberta e término e o vértice anterior visitado de cada vértice
+  int *cor = malloc(sizeof(int) * grafo->numVertices);
+  int *tempoDescoberta = malloc(sizeof(int) * grafo->numVertices);
+  int *tempoTermino = malloc(sizeof(int) * grafo->numVertices);
+  int *anterior = malloc(sizeof(int) * grafo->numVertices);
+
+  // Se a alocação não foi bem sucedida
+  if (!cor || !tempoDescoberta || !tempoTermino || !anterior) {
+    printf("Erro ao alocar memória para a array para a busca em profundidade\n");
     return;
   }
 
-  printf("%d", noLista->vertice);
-  noLista = noLista->proximo;
-
-  // Loop pra percorrer até o NULL
-  while (noLista != NULL) {
-    printf(" -> %d", noLista->vertice);
-    noLista = noLista->proximo;
+  // Inicializando as arrays
+  for (int i = 0; i < grafo->numVertices; i++) {
+    cor[i] = 0;
+    tempoDescoberta[i] = -1;
+    tempoTermino[i] = -1;
+    anterior[i] = -1;
   }
-  printf("\n\n");
-}
 
-// Função que destroi a lista
-void DestruirLista(No *noLista) {
-  No *noAtual = noLista;
+  int tempo = 0;
 
-  // Loop que percorre a lista até o NULL
-  while (noAtual != NULL) {
-    No *noProximo = noAtual->proximo;
-    free(noAtual);
-    noAtual = noProximo;
+  // Loop que percorre cada item da lista
+  for (int i = 0; i < grafo->numVertices; i++) {
+    // Se o vertice estiver como branco (ainda não foi visitado), chama a função recursiva
+    if (cor[i] == 0) {
+      VisitarGrafoProfundidadeVerificarCiclo(grafo, i, &tempo, cor, tempoDescoberta, tempoTermino, anterior, &possuiAlgumCiclo);
+    }
   }
+
+  if (possuiAlgumCiclo == FALSE) {
+    printf("O grafo nao possui ciclos\n");
+  }
+
+  free(cor);
+  free(tempoDescoberta);
+  free(tempoTermino);
+  free(anterior);
 }
 
 int main(void) {
@@ -497,7 +576,7 @@ int main(void) {
     return 1;
   }
 
-  while (escolha > 0 && escolha < 11) {
+  while (escolha > 0 && escolha < 15) {
     printf("\nQual acao deseja realizar?\n");
     printf("1 - Inserir uma aresta\n");
     printf("2 - Remover uma aresta\n");
@@ -509,8 +588,11 @@ int main(void) {
     printf("8 - Visitar grafo por profundidade\n");
     printf("9 - Visitar grafo por profundidade mostrando cores e tempo\n");
     printf("10 - Encontrar caminho ate um destino\n");
-    printf("11 - Limpar grafo\n");
-    printf("12 - Sair\n");
+    printf("11 - Verificar ciclos\n");
+    printf("12 - Imprimir ordenacao topologica\n");
+    printf("13 - .\n");
+    printf("14 - Limpar grafo\n");
+    printf("15 - Sair\n");
 
     scanf("%d", &escolha);
     printf("\n");
@@ -656,6 +738,28 @@ int main(void) {
       break;
 
     case 11:
+      printf("Verificando se o grafo tem ciclos\n");
+      BuscaProfundidadeVerificarCiclo(grafo);
+      break;
+
+    case 12:
+      printf("Visitando o grafo por profundidade e imprimindo a ordenacao topologica\n");
+      No *noListaOrdenacao = BuscaProfundidadOrdenacaoTopologica(grafo);
+
+      if (noListaOrdenacao) {
+        printf("A ordenacao topologica do grafo e:\n");
+        ImprimirCaminhoLista(noListaOrdenacao);
+        DestruirLista(noListaOrdenacao);
+      } else {
+        printf("Nao existe ordenacao topologica para o grafo\n");
+      }
+      break;
+
+    case 13:
+
+      break;
+
+    case 14:
       LimparGrafo(grafo);
       printf("O grafo foi limpo\n");
       break;
