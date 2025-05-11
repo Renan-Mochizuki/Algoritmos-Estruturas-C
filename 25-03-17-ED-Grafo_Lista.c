@@ -362,10 +362,12 @@ void BuscaProfundidadeCores(Grafo *grafo) {
     }
   }
 
-  printf("Vertice\tAnterior\tDescoberta\tTermino\tCor\n");
+  // Cabeçalho: alinhado à esquerda
+  printf("%-8s %-10s %-12s %-10s %-4s\n", "Vertice", "Anterior", "Descoberta", "Termino", "Cor");
 
+  // Valores: alinhados à direita
   for (int i = 0; i < grafo->numVertices; i++) {
-    printf("%6i\t%8i\t%8i\t%8i\t%4i\n", i, anterior[i], tempoDescoberta[i], tempoTermino[i], cor[i]);
+    printf("%8d %10d %12d %10d %4d\n", i, anterior[i], tempoDescoberta[i], tempoTermino[i], cor[i]);
   }
 
   printf("\n");
@@ -373,6 +375,111 @@ void BuscaProfundidadeCores(Grafo *grafo) {
   free(tempoDescoberta);
   free(tempoTermino);
   free(anterior);
+}
+
+// Função que cria um novo nó
+No *CriarNovoNo(int vertice) {
+  No *novoNo = malloc(sizeof(No));
+  novoNo->vertice = vertice;
+  novoNo->proximo = NULL;
+  return novoNo;
+}
+
+// Função recursiva que encontra o caminho entre dois vértices
+Boolean VisitarGrafoProfundidadeCaminho(Grafo *grafo, int verticeAtual, int verticeDestino, Boolean *visitado, No *noCabeca) {
+  visitado[verticeAtual] = TRUE;
+
+  // Se o vértice atual é o destino, adiciona à lista
+  if (verticeAtual == verticeDestino) {
+    No *novoNo = CriarNovoNo(verticeAtual);
+    novoNo->proximo = noCabeca->proximo;
+    noCabeca->proximo = novoNo;
+    return TRUE;
+  }
+
+  No *noAtual = grafo->lista[verticeAtual];
+  // Loop que percorre cada item da lista para um determinado vertice
+  while (noAtual) {
+    // Se o vertice i é adjacente ao vertice atual e ainda não foi visitado
+    if (!visitado[noAtual->vertice]) {
+      // Se a busca recursiva retornar verdadeiro, adiciona o vértice atual à lista
+      if (VisitarGrafoProfundidadeCaminho(grafo, noAtual->vertice, verticeDestino, visitado, noCabeca)) {
+        No *novoNo = CriarNovoNo(verticeAtual);
+        novoNo->proximo = noCabeca->proximo;
+        noCabeca->proximo = novoNo;
+        return TRUE;
+      }
+    }
+    noAtual = noAtual->proximo;
+  }
+  return FALSE;
+}
+
+// Função que encontra o caminho entre dois vértices
+No *BuscaProfundidadeCaminho(Grafo *grafo, int verticeOrigem, int verticeDestino) {
+  if (!ValidarParametros(grafo, verticeOrigem, verticeDestino)) {
+    printf("Parâmetros inválidos\n");
+    return NULL;
+  }
+
+  // Alocando um array para verificar se o vertice foi visitado
+  Boolean *visitado = malloc(sizeof(Boolean) * grafo->numVertices);
+
+  // Se a alocação não foi bem sucedida
+  if (!visitado) {
+    printf("Erro ao alocar memória para o array de visitados\n");
+    return NULL;
+  }
+
+  // Inicializando o array com FALSE
+  for (int i = 0; i < grafo->numVertices; i++) {
+    visitado[i] = FALSE;
+  }
+
+  // Criando a lista de caminho
+  No *noCabeca = CriarNovoNo(-1);
+
+  // Chamando a função recursiva
+  if (VisitarGrafoProfundidadeCaminho(grafo, verticeOrigem, verticeDestino, visitado, noCabeca)) {
+    No *noSemCabeca = noCabeca->proximo;
+    free(noCabeca);
+    free(visitado);
+    return noSemCabeca;
+  } 
+
+  // Se não encontrou o caminho, libera a lista e retorna NULL
+  free(visitado);
+  DestruirLista(noCabeca);
+  return NULL;
+}
+
+// Função que imprime os valores da lista
+void ImprimirCaminhoLista(No *noLista) {
+  if (!noLista) {
+    return;
+  }
+
+  printf("%d", noLista->vertice);
+  noLista = noLista->proximo;
+
+  // Loop pra percorrer até o NULL
+  while (noLista != NULL) {
+    printf(" -> %d", noLista->vertice);
+    noLista = noLista->proximo;
+  }
+  printf("\n\n");
+}
+
+// Função que destroi a lista
+void DestruirLista(No *noLista) {
+  No *noAtual = noLista;
+
+  // Loop que percorre a lista até o NULL
+  while (noAtual != NULL) {
+    No *noProximo = noAtual->proximo;
+    free(noAtual);
+    noAtual = noProximo;
+  }
 }
 
 int main(void) {
@@ -398,11 +505,12 @@ int main(void) {
     printf("4 - Verificar se uma aresta existe\n");
     printf("5 - Verificar se um vertice possui vizinhos\n");
     printf("6 - Calcular grau de um vertice\n");
-    printf("7 - Visitar grafo por profundidade\n");
-    printf("8 - Visitar grafo por profundidade com cores e tempo\n");
-    printf("9 - Imprimir grafo\n");
-    printf("10 - Limpar grafo\n");
-    printf("11 - Sair\n");
+    printf("7 - Imprimir grafo\n");
+    printf("8 - Visitar grafo por profundidade\n");
+    printf("9 - Visitar grafo por profundidade mostrando cores e tempo\n");
+    printf("10 - Encontrar caminho ate um destino\n");
+    printf("11 - Limpar grafo\n");
+    printf("12 - Sair\n");
 
     scanf("%d", &escolha);
     printf("\n");
@@ -511,20 +619,43 @@ int main(void) {
       break;
 
     case 7:
+      ImprimirValores(grafo);
+      break;
+
+    case 8:
       printf("Visitando o grafo por profundidade\n");
       BuscaProfundidade(grafo);
       break;
-      
-    case 8:
+
+    case 9:
       printf("Visitando o grafo por profundidade utilizando cores\n");
       BuscaProfundidadeCores(grafo);
       break;
 
-    case 9:
-      ImprimirValores(grafo);
+    case 10:
+      printf("Digite o vertice de origem\n");
+      scanf("%d", &vertice1);
+
+      if (vertice1 < 0) break;
+
+      printf("Digite o vertice de destino\n");
+      scanf("%d", &vertice2);
+
+      if (vertice2 < 0) break;
+
+      No *noListaCaminho = BuscaProfundidadeCaminho(grafo, vertice1, vertice2);
+
+      if (noListaCaminho) {
+        printf("O caminho entre os vertices %d e %d e:\n", vertice1, vertice2);
+        ImprimirCaminhoLista(noListaCaminho);
+        DestruirLista(noListaCaminho);
+      } else {
+        printf("Nao existe caminho entre os vertices %d e %d\n", vertice1, vertice2);
+      }
+
       break;
 
-    case 10:
+    case 11:
       LimparGrafo(grafo);
       printf("O grafo foi limpo\n");
       break;
