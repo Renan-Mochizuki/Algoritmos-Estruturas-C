@@ -227,6 +227,154 @@ void BuscaProfundidade(Grafo *grafo){
   free(visitado);
 }
 
+// Implementação da fila
+typedef struct nodeFila {
+  int valor;
+  struct nodeFila *proximo;
+} NoFila;
+
+typedef struct {
+  NoFila *primeiro;
+  NoFila *ultimo;
+  int tamanho;
+} Fila;
+
+// Função que retorna o ponteiro para uma fila
+Fila *CriarFila() {
+  Fila *fila = malloc(sizeof(Fila));
+  fila->primeiro = NULL;
+  fila->ultimo = NULL;
+  fila->tamanho = 0;
+  return fila;
+}
+
+// Função que destroi a fila
+void DestruirFila(Fila *fila) {
+  if (!fila) return;
+
+  NoFila *noAtual = fila->primeiro;
+  while (noAtual) {
+    NoFila *noProximo = noAtual->proximo;
+    free(noAtual);
+    noAtual = noProximo;
+  }
+
+  free(fila);
+}
+
+// Função que vai inserir um valor no final da fila
+Boolean InserirValorFila(Fila *fila, TipoValor valor) {
+  NoFila *novoItem = malloc(sizeof(NoFila));
+  novoItem->valor = valor;
+  novoItem->proximo = NULL;
+
+  // Se a fila estiver vazia
+  if (!fila->primeiro) {
+    fila->primeiro = novoItem;
+    fila->ultimo = novoItem;
+  } else { // Fila não está vazia
+    NoFila *ultimoAtual = fila->ultimo;
+    ultimoAtual->proximo = novoItem;
+
+    // Atualiza o último item da fila
+    fila->ultimo = novoItem;
+  }
+
+  fila->tamanho++;
+  return TRUE;
+}
+
+// Função que vai remover o primeiro valor da fila
+Boolean RemoverValorFila(Fila *fila) {
+  // Se a fila estiver vazia
+  if (fila->tamanho == 0) return FALSE;
+
+  NoFila *primeiroItem = fila->primeiro;
+
+  // Alterando o primeiro da fila
+  fila->primeiro = primeiroItem->proximo;
+
+  free(primeiroItem);
+  fila->tamanho--;
+
+  return TRUE;
+}
+
+// Função que imprime os valores da fila
+void ImprimirValoresFila(Fila *fila) {
+  if (fila->tamanho == 0) {
+    printf("A fila esta vazia\n");
+    return;
+  }
+
+  NoFila *itemAtual = fila->primeiro;
+
+  printf("Fila: ");
+  // Loop que percorre a fila
+  for (int i = 0; i < fila->tamanho; i++) {
+    printf("%d, ", itemAtual->valor);
+    itemAtual = itemAtual->proximo;
+  }
+  printf("\n");
+}
+
+// Função que verifica se a fila está vazia
+Boolean FilaVazia(Fila *fila) {
+  if (fila->tamanho == 0) return TRUE;
+  return FALSE;
+}
+
+void VisitarGrafoLargura(Grafo *grafo, int vertice, Boolean *visitado) {
+  visitado[vertice] = TRUE;
+
+  Fila *fila = CriarFila();
+  InserirValorFila(fila, vertice);
+  ImprimirValoresFila(fila);
+
+  while (!FilaVazia(fila)) {
+    int verticeAtual = fila->primeiro->valor;
+    printf("Visitando o vertice %d\n", verticeAtual);
+    RemoverValorFila(fila);
+
+    // Reinicializar noAtual para o início da lista de adjacência do vértice atual
+    for (int i = 0; i < grafo->numVertices; i++) {
+      // Se o vertice i é adjacente ao vertice atual e ainda não foi visitado
+      if (grafo->matriz[verticeAtual][i] == TRUE && !visitado[i]) {
+        InserirValorFila(fila, i);
+        visitado[i] = TRUE;
+        ImprimirValoresFila(fila);
+      }
+    }
+  }
+  DestruirFila(fila);
+}
+
+void BuscaLargura(Grafo *grafo) {
+  if (!ValidarParametros(grafo, 0, 0)) return;
+
+  // Alocando um array para verificar se o vertice foi visitado
+  Boolean *visitado = malloc(sizeof(Boolean) * grafo->numVertices);
+
+  // Se a alocação não foi bem sucedida
+  if (!visitado) {
+    printf("Erro ao alocar memória para o array de visitados\n");
+    return;
+  }
+
+  // Inicializando o array com FALSE
+  for (int i = 0; i < grafo->numVertices; i++) {
+    visitado[i] = FALSE;
+  }
+
+  for (int i = 0; i < grafo->numVertices; i++) {
+    // Se o vertice ainda não foi visitado, chama a função recursiva
+    if (!visitado[i]) {
+      VisitarGrafoLargura(grafo, i, visitado);
+    }
+  }
+  free(visitado);
+}
+
 int main(void) {
   TipoValor valorDigitado = 0;
   int tamanhoDigitado = 0;
@@ -242,7 +390,7 @@ int main(void) {
     return 1;
   }
 
-  while (escolha > 0 && escolha < 10) {
+  while (escolha > 0 && escolha < 11) {
     printf("\nQual acao deseja realizar?\n");
     printf("1 - Inserir uma aresta\n");
     printf("2 - Remover uma aresta\n");
@@ -250,10 +398,11 @@ int main(void) {
     printf("4 - Verificar se uma aresta existe\n");
     printf("5 - Verificar se um vertice possui vizinhos\n");
     printf("6 - Calcular grau de um vertice\n");
-    printf("7 - Visitar grafo por profundidade\n");
-    printf("8 - Imprimir grafo\n");
-    printf("9 - Limpar grafo\n");
-    printf("10 - Sair\n");
+    printf("7 - Imprimir grafo\n");
+    printf("8 - Visitar grafo por profundidade\n");
+    printf("9 - Visitar grafo por largura\n");
+    printf("14 - Limpar grafo\n");
+    printf("15 - Sair\n");
 
     scanf("%d", &escolha);
     printf("\n");
@@ -363,15 +512,20 @@ int main(void) {
       break;
 
     case 7:
+      ImprimirValores(grafo);
+      break;
+
+    case 8:
       printf("Visitando o grafo por profundidade\n");
       BuscaProfundidade(grafo);
       break;
 
-    case 8:
-      ImprimirValores(grafo);
+    case 9:
+      printf("Visitando o grafo por largura\n");
+      BuscaLargura(grafo);
       break;
 
-    case 9:
+    case 14:
       LimparGrafo(grafo);
       printf("O grafo foi limpo\n");
       break;
