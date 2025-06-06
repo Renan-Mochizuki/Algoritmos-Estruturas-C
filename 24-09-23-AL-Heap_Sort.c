@@ -26,7 +26,6 @@ void PreencherValores(TipoValor arr[], int tamanho) {
 }
 
 // Função que troca dois valores
-// Complexidade: O(n)
 void Trocar(TipoValor *a, TipoValor *b) {
   TipoValor temp = *a;
   *a = *b;
