@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define tamanhoArray 100
-
+// Função que ordena uma array usando o algoritmo Insertion Sort
+// Complexidade: O(n^2)
+// Pior caso: T(n) = (n-1) + (n-2) + ... + 1 = n(n-1)/2 = n^2/2 - n/2
 void InsertionSort(int *array, int tamanho) {
 	// Loop que percorre a array começando em 1
 	for (int j = 1; j < tamanho; j++) {
@@ -30,26 +31,40 @@ void InsertionSort(int *array, int tamanho) {
 }
 
 int main(void) {
-	int array[tamanhoArray];
-	srand(time(NULL));
+  srand(time(NULL));
+  clock_t inicioTempo, fimTempo;
+  double tempoGasto;
+  int tamanho;
+
+  printf("Digite o tamanho da array que ira ser preenchida aleatoriamente:\n");
+  scanf("%d", &tamanho);
+
+	int array[tamanho];
 
 	// Loop para inserir valores aleatórios no array
-	for (int i = 0; i < tamanhoArray; i++) {
-		array[i] = rand() % 101;
+	for (int i = 0; i < tamanho; i++) {
+		array[i] = rand() % 1001;
 	}
 
 	// Loop para imprimir o array antes da ordenação
-	for (int i = 0; i < tamanhoArray; i++) {
+	for (int i = 0; i < tamanho; i++) {
 		printf("%d, ", array[i]);
 	}
 
-	InsertionSort(array, tamanhoArray);
+  inicioTempo = clock();
+
+	InsertionSort(array, tamanho);
+
+  fimTempo = clock();
 
 	// Loop para imprimir o array depois da ordenação
 	printf("\n\nArray ordenada:\n");
-	for (int i = 0; i < tamanhoArray; i++) {
+	for (int i = 0; i < tamanho; i++) {
 		printf("%d, ", array[i]);
 	}
+
+  tempoGasto = ((double)(fimTempo - inicioTempo)) / CLOCKS_PER_SEC;
+  printf("\n\nTempo de execucao para ordenar a array: %.6f segundos\n", tempoGasto);
 
 	return 0;
 }

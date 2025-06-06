@@ -10,7 +10,7 @@ typedef int Boolean;
 typedef int TipoValor;
 
 // Função que imprime a array
-void ImprimirValores(const TipoValor arr[], int tamanho){
+void ImprimirValores(const TipoValor arr[], int tamanho) {
   printf("\n");
   for (int i = 0; i < tamanho; i++) {
     printf("%d, ", arr[i]);
@@ -26,6 +26,7 @@ void PreencherValores(TipoValor arr[], int tamanho) {
 }
 
 // Função que troca dois valores
+// Complexidade: O(n)
 void Trocar(TipoValor *a, TipoValor *b) {
   TipoValor temp = *a;
   *a = *b;
@@ -33,10 +34,14 @@ void Trocar(TipoValor *a, TipoValor *b) {
 }
 
 // Função que máxima o heap, trocando o valor da raiz com o maior filho recursivamente
+// Complexidade: O(log m)
+// Sendo m o número de nós na subárvore passada para essa função (ou seja, no caso do heap inteiro é O(log n))
+// T(m) = T(m/2) + 1C (m/2 pois estamos descendo na árvore binária)
+// Resolvendo a recorrência, T(m) = log_2(m)C + C
 void Heapify(TipoValor arr[], int tamanho, int raiz) {
-  int maior = raiz; // Inicializa o maior como raiz
+  int maior = raiz;            // Inicializa o maior como raiz
   int esquerda = 2 * raiz + 1; // Filho da esquerda
-  int direita = 2 * raiz + 2; // Filho da direita
+  int direita = 2 * raiz + 2;  // Filho da direita
 
   // Verificando se o filho da esquerda ou direita é maior e se o índice não ultrapassou o tamanho
   if (esquerda < tamanho && arr[esquerda] > arr[maior])
@@ -53,6 +58,10 @@ void Heapify(TipoValor arr[], int tamanho, int raiz) {
 }
 
 // Função que reorganiza a array em um heap (dos nós de baixo para cima)
+// Complexidade: O(n)
+// Analisando cada altura h do heap que vai de 0 até log_2(n), para cada subárvore dessa altura temos n/2^{h+1} nós
+// Será executado Heapify para cada nó dessa subárvore da altura h, portanto (n / 2^{h+1}) * O(h) para cada altura
+// Somando (n / 2^{h+1}) * O(h) para h de 0 até log_2(n) resulta em O(n)
 void MaxHeapify(TipoValor arr[], int tamanho) {
   // Executando Heapify para cada nó, começando do último nó não folha (pois as folhas não precisam de heapify)
   int indiceUltimoNo = tamanho / 2 - 1;
@@ -61,6 +70,9 @@ void MaxHeapify(TipoValor arr[], int tamanho) {
 }
 
 // Função que ordena a array usando o algoritmo Heap Sort
+// Complexidade: O(n log n)
+// Como HeapSort vai fazer Heapify para o heap inteiro todas as vezes, temos Heapify sendo O(log n)
+// T(n) = MaxHeapify + n * Heapify = O(n) + n * O(log n) = O(n log n)
 void HeapSort(TipoValor arr[], int tamanho) {
   // Converte a array em um max-heap
   MaxHeapify(arr, tamanho);
@@ -76,8 +88,8 @@ void HeapSort(TipoValor arr[], int tamanho) {
   }
 }
 
-int main(void){
-	srand(time(NULL));
+int main(void) {
+  srand(time(NULL));
   clock_t inicioTempo, fimTempo;
   double tempoGasto;
   int tamanho;
