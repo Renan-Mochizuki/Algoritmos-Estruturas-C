@@ -10,7 +10,7 @@ void InsertionSort(int *array, int tamanho) {
 	for (int j = 1; j < tamanho; j++) {
 
 		// Guardando o valor atual
-		int auxiliar = array[j];
+		int chave = array[j];
 
 		// i pega o valor anterior
 		int i = j - 1;
@@ -19,14 +19,14 @@ void InsertionSort(int *array, int tamanho) {
 		// mova os elementos maiores para a direita, até encontrar
 		// a posição correta para o valor atual
 		// i >= 0 para caso o valor atual for o menor de toda array
-		while (i >= 0 && array[i] > auxiliar) {
+		while (i >= 0 && array[i] > chave) {
 			array[i + 1] = array[i];
 			i--;
 		}
 
 		// Realize a troca
 		// Se o while não acontecer, essa atribuição não tem efeito
-		array[i + 1] = auxiliar;
+		array[i + 1] = chave;
 	}
 }
 
