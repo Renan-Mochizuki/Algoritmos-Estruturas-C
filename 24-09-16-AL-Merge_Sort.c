@@ -37,44 +37,44 @@ void Trocar(TipoValor *a, TipoValor *b) {
 // Sendo m o número de elementos na subarray que está sendo mesclada
 // T(m) = mC/2 + mC/2 + mC/2
 void Merge(TipoValor arr[], int p, int q, int r) {
-  int tamanhoE = q - p + 1; // Tamanho da primeira metade
-  int tamanhoD = r - q;     // Tamanho da segunda metade
+  int tamanhoEsq = q - p + 1; // Tamanho da primeira metade
+  int tamanhoDir = r - q;     // Tamanho da segunda metade
 
-  TipoValor E[tamanhoE], D[tamanhoD]; // Arrays temporários para as metades
+  TipoValor Esq[tamanhoEsq], Dir[tamanhoDir]; // Arrays temporários para as metades
 
   // Copiando os valores de cada metade para os arrays temporários
-  for (int i = 0; i < tamanhoE; i++)
-    E[i] = arr[p + i];
-  for (int j = 0; j < tamanhoD; j++)
-    D[j] = arr[q + 1 + j];
+  for (int i = 0; i < tamanhoEsq; i++)
+    Esq[i] = arr[p + i];
+  for (int j = 0; j < tamanhoDir; j++)
+    Dir[j] = arr[q + 1 + j];
 
   // Declarando os índices para primeira metade, segunda e o índice para a array final
-  int iE = 0, iD = 0, iArr = p;
+  int iEsq = 0, iDir = 0, iArr = p;
 
   // Loop que vai preencher a array final com os valores de cada metade ordenadamente
-  while (iE < tamanhoE && iD < tamanhoD) {
+  while (iEsq < tamanhoEsq && iDir < tamanhoDir) {
     // Coloca na array final o menor valor entre as duas metades até acabar uma delas
-    if (E[iE] <= D[iD]) {
-      arr[iArr] = E[iE];
-      iE++;
+    if (Esq[iEsq] <= Dir[iDir]) {
+      arr[iArr] = Esq[iEsq];
+      iEsq++;
     } else {
-      arr[iArr] = D[iD];
-      iD++;
+      arr[iArr] = Dir[iDir];
+      iDir++;
     }
     iArr++;
   }
 
   // Se ainda houver elementos na primeira metade, copie-os para a array final
-  while (iE < tamanhoE) {
-    arr[iArr] = E[iE];
-    iE++;
+  while (iEsq < tamanhoEsq) {
+    arr[iArr] = Esq[iEsq];
+    iEsq++;
     iArr++;
   }
 
   // Se ainda houver elementos na segunda metade, copie-os para a array final
-  while (iD < tamanhoD) {
-    arr[iArr] = D[iD];
-    iD++;
+  while (iDir < tamanhoDir) {
+    arr[iArr] = Dir[iDir];
+    iDir++;
     iArr++;
   }
 }
