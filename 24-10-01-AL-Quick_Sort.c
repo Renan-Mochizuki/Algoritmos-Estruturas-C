@@ -33,34 +33,85 @@ void Trocar(TipoValor *a, TipoValor *b) {
 }
 
 // Função de partição do Quick Sort
-int Particao(TipoValor arr[], int inicio, int fim) {
+// Esquema de Lomuto, com o último elemento como pivô
+// Complexidade: O(m)
+// Sendo m o número de elementos na subarray que está sendo particionada
+// T(m) = mC + C
+int ParticaoLomuto(TipoValor arr[], int inicio, int fim) {
+  // Escolhendo o último elemento como pivô
+  // Pode ser melhor escolher o pivô de forma aleatória ou usando a mediana
   TipoValor pivo = arr[fim];
+  // Inicializando i para fora do array
   int i = inicio - 1;
 
+  // Loop que anda com j percorrendo a array do início até o penúltimo elemento
   for (int j = inicio; j < fim; j++) {
+    // Se o elemento atual for menor ou igual ao pivô, incrementa i e troca os elementos com i e j
     if (arr[j] <= pivo) {
       i++;
       Trocar(&arr[i], &arr[j]);
     }
   }
+
+  // Após o loop, temos uma parte com elementos menores ou iguais ao pivô e outra com elementos maiores
+  // Precisamos colocar o pivô no meio dessas duas partes
+  // Trocamos a posição i+1 (primeiro item da partição maior) com o pivô e retornamos o novo índice do pivô
   Trocar(&arr[i + 1], &arr[fim]);
   return i + 1;
 }
 
-// Função recursiva do Quick Sort
-void QuickSort(TipoValor arr[], int tamanho) {
-  if (tamanho < 2) {
-    return; // Array já está ordenada
+
+// Função de partição do Quick Sort
+// Esquema de Hoare, com o primeiro elemento como pivô
+// Complexidade: O(m)
+// Sendo m o número de elementos na subarray que está sendo particionada
+// T(m) = mC + C
+int ParticaoHoare(int vet[], int inicio, int fim) {
+  // Escolhendo o primeiro elemento como pivô
+  // Pode ser melhor escolher o pivô de forma aleatória ou usando a mediana
+  int pivot = vet[inicio];
+  int esq = inicio;
+  int dir = fim;
+
+  // Enquanto os ponteiros 'esq' e 'dir' não se cruzarem
+  while (esq < dir) {
+    // Mova o ponteiro 'esq' para a direita até encontrar o primeiro elemento MAIOR que o pivô
+    // esq < fim para garantir que não ultrapasse o limite do array
+    while (vet[esq] <= pivot && esq < fim)
+      esq++;
+
+    // Mova o ponteiro 'dir' para a esquerda até encontrar o primeiro elemento menor ou igual que o pivô
+    while (vet[dir] > pivot)
+      dir--;
+
+    // Agora temos ponteiros para dois elementos, um maior e outro menor ou igual ao pivô
+    // Portanto, iremos trocar esses elementos
+    // esq < dir para garantir que 'esq' e 'dir' não se cruzaram
+    if (esq < dir) {
+      Trocar(&vet[esq], &vet[dir]);
+    }
+
+    // Continuaremos até que tenhamos uma parte menor ou igual ao pivô e outra maior
   }
 
-  int inicio = 0;
-  int fim = tamanho - 1;
+  // Trocaremos o pivô com o último elemento da parte menor ou igual que está em 'dir' e retornamos o novo índice do pivô
+  Trocar(&vet[inicio], &vet[dir]);
+  return dir;
+}
 
-  int indicePivo = Particao(arr, inicio, fim);
+// Função recursiva do Quick Sort
+// Complexidade: O(n log n) no caso médio e O(n^2) no pior caso
+// T(n) = T(n/2) + T(n/2) + O(n)
+// Resolvendo: T(n) = Cn log_2(n) + Cn
+// No pior caso, a partição é sempre o menor ou o maior elemento, resultando em T(n) = Cn^2
+void QuickSort(TipoValor arr[], int inicio, int fim) {
+  if (inicio >= fim) return;
 
-  // Ordena as duas metades
-  QuickSort(arr, indicePivo);
-  QuickSort(arr + indicePivo + 1, tamanho - indicePivo - 1);
+  // Chamando partição para separar uma parte menor ou igual ao pivô e outra maior
+  int indicePivo = ParticaoHoare(arr, inicio, fim);
+
+  QuickSort(arr, inicio, indicePivo - 1);
+  QuickSort(arr, indicePivo + 1, fim);
 }
 
 int main(void) {
@@ -81,7 +132,7 @@ int main(void) {
 
   inicioTempo = clock();
 
-  QuickSort(arr, tamanho);
+  QuickSort(arr, 0, tamanho - 1);
 
   fimTempo = clock();
 
