@@ -1,9 +1,10 @@
 # Algoritmos-e-Estruturas-de-dados-C
+
 Algoritmos e estruturas de dados desenvolvidos na linguagem C durante minha graduação de Sistemas da informação
 
-Esse repositório tem como objetivo armazenar todos os exercícios, atividades e outros códigos de aprendizagem feitos por mim na linguagem C durante minha graduação de Sistemas da informação nas disciplinas Introdução à Análise de Algoritmos e Algoritmos e Estruturas de dados I no ano de 2024, Estruturas de dados II no ano de 2025 na USP-EACH.
+Esse repositório tem como objetivo armazenar todos os exercícios, atividades e outros códigos de aprendizagem feitos por mim na linguagem C durante minha graduação de Sistemas da informação nas disciplinas: ACH2002 Introdução à Análise de Algoritmos, ACH2023 Algoritmos e Estruturas de dados I e ACH2024 Algoritmos e Estruturas de dados II na USP-EACH.
 
-Os arquivos estão organizados por data, portanto, é notável a diferença entre arquivos recentes e mais antigos
+Os arquivos estão organizados por data de conteúdo, portanto pode ser notável a diferença entre arquivos mais recentes.
 
 Classifiquei os arquivos com siglas sendo:
 
@@ -17,7 +18,7 @@ Classifiquei os arquivos com siglas sendo:
 
 - A = Atividade
 
-- EP = Desafio
+- EP = Desafio/Exercício programa
 
 - L = Lista
 
