@@ -1,3 +1,4 @@
+#include <float.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -79,7 +80,7 @@ FilaDePrioridade *CriarFilaDePrioridade(int tamanho) {
     free(fila->Arr);
     free(fila->posicoes);
     free(fila);
-    return NULL; 
+    return NULL;
   }
 
   fila->numElementos = 0;
@@ -123,23 +124,34 @@ FilaDePrioridade *CriarFilaDePrioridadeComPesos(int numElementos, Peso peso) {
   return fila;
 }
 
-// Função que imprime os valores da fila de prioridade
-void ImprimirValores(FilaDePrioridade *fila) {
-  if (!fila) {
-    printf("Fila de prioridade vazia\n");
-    return;
-  }
-  printf("Fila de prioridade: ");
-  for (int i = 0; i < fila->numElementos; i++) {
-    printf("%i (%3.2f) ", fila->Arr[i].id, fila->Arr[i].peso);
-  }
-  printf("\n");
-}
-
 // Função que retorna TRUE se a fila de prioridade estiver vazia
 Boolean VerificarSeFilaDePrioridadeEstaVazia(FilaDePrioridade *fila) {
   if (!fila || fila->numElementos == 0) return TRUE;
   return FALSE;
+}
+
+// Função que verifica se o elemento existe na fila de prioridade
+Boolean VerificarExistenciaElemento(FilaDePrioridade *fila, int id) {
+  // Verificar se os parametros são válidos
+  if (!fila || id < 0 || id >= fila->tamanho) return FALSE;
+
+  // Verifica se o elemento existe
+  if (fila->posicoes[id] != -1) return TRUE;
+
+  return FALSE;
+}
+
+// Função que imprime os valores da fila de prioridade
+void ImprimirValores(FilaDePrioridade *fila) {
+  if (VerificarSeFilaDePrioridadeEstaVazia(fila)) {
+    printf("Fila de prioridade vazia\n");
+    return;
+  }
+  printf("\nFila de prioridade:\n");
+  for (int i = 0; i < fila->numElementos; i++) {
+    printf("%i (%3.2f) ", fila->Arr[i].id, fila->Arr[i].peso);
+  }
+  printf("\n\n");
 }
 
 // Função que garante que a fila de prioridade esteja em heap mínimo
@@ -159,19 +171,28 @@ void AtualizarPosicao(FilaDePrioridade *fila, int posicao) {
 // Função que altera a prioridade de um dos elementos da fila
 Boolean AlterarPrioridade(FilaDePrioridade *fila, int id, Peso peso) {
   // Verificar se os parametros são válidos
-  if (!fila || id < 0 || id >= fila->numElementos) return FALSE;
+  if (!fila || id < 0 || id >= fila->tamanho) return FALSE;
+  if (!VerificarExistenciaElemento(fila, id)) return FALSE;
 
   int posicao = fila->posicoes[id];
-  if (fila->Arr[posicao].peso <= peso) return FALSE;
+  Peso pesoAtual = fila->Arr[posicao].peso;
   fila->Arr[posicao].peso = peso;
-  AtualizarPosicao(fila, posicao);
+
+  if (peso < pesoAtual) {
+    // Se diminuiu o peso, sobe no heap
+    AtualizarPosicao(fila, posicao);
+  } else if (peso > pesoAtual) {
+    // Se aumentou o peso, desce no heap
+    HeapifyFila(fila, posicao);
+  }
+
   return TRUE;
 }
 
 // Função que verifica se a prioridade pode ser diminuida
 Boolean DiminuirPrioridade(FilaDePrioridade *fila, int id, Peso peso) {
   // Verificar se os parametros são válidos
-  if (!fila || id < 0 || id >= fila->numElementos) return FALSE;
+  if (!fila || id < 0 || id >= fila->tamanho) return FALSE;
 
   int posicao = fila->posicoes[id];
   if (fila->Arr[posicao].peso <= peso) return FALSE;
@@ -179,23 +200,15 @@ Boolean DiminuirPrioridade(FilaDePrioridade *fila, int id, Peso peso) {
   return AlterarPrioridade(fila, id, peso);
 }
 
-// // Função que verifica se a prioridade pode ser aumentada
-// Boolean AumentarPrioridade(FilaDePrioridade *fila, int id, Peso peso) {
-//   int posicao = fila->posicoes[id];
-//   if (fila->Arr[posicao].peso >= peso) return FALSE;
-
-//   return AlterarPrioridade(fila, id, peso);
-// }
-
-// Função que verifica se o elemento existe na fila de prioridade
-Boolean VerificarExistenciaElemento(FilaDePrioridade *fila, int id) {
+// Função que verifica se a prioridade pode ser aumentada
+Boolean AumentarPrioridade(FilaDePrioridade *fila, int id, Peso peso) {
   // Verificar se os parametros são válidos
   if (!fila || id < 0 || id >= fila->tamanho) return FALSE;
 
-  // Verifica se o elemento existe
-  if (fila->posicoes[id] != -1) return TRUE;
+  int posicao = fila->posicoes[id];
+  if (fila->Arr[posicao].peso >= peso) return FALSE;
 
-  return FALSE;
+  return AlterarPrioridade(fila, id, peso);
 }
 
 // Função que adiciona um elemento na fila de prioridade
@@ -207,6 +220,7 @@ Boolean AdicionarElemento(FilaDePrioridade *fila, int id, Peso peso) {
 
   fila->Arr[fila->numElementos].id = id;
   fila->Arr[fila->numElementos].peso = peso;
+  fila->posicoes[id] = fila->numElementos;
   fila->numElementos++;
   AtualizarPosicao(fila, fila->numElementos - 1);
   return TRUE;
@@ -221,7 +235,8 @@ int RemoverElemento(FilaDePrioridade *fila) {
   fila->posicoes[fila->Arr[0].id] = -1;
   fila->Arr[0] = fila->Arr[fila->numElementos - 1];
   fila->numElementos--;
-  fila->posicoes[fila->Arr[0].id] = 0;
+  if (fila->numElementos > 0)
+    fila->posicoes[fila->Arr[0].id] = 0;
   HeapifyFila(fila, 0);
   return temp.id;
 }
@@ -232,7 +247,7 @@ void LimparFilaDePrioridade(FilaDePrioridade *fila) {
 
   for (int i = 0; i < fila->tamanho; i++) {
     fila->Arr[i].id = -1;
-    fila->Arr[i].peso = INT_MAX;
+    fila->Arr[i].peso = FLT_MAX;
     fila->posicoes[i] = -1;
   }
   fila->numElementos = 0;
@@ -244,23 +259,101 @@ void DestruirFilaDePrioridade(FilaDePrioridade *fila) {
 
   free(fila->Arr);
   free(fila->posicoes);
+  free(fila);
 }
 
-// int main(void) {
-//   int capacidade, escolha = 1;
-//   TipoValor valor, prioridade;
+int main(void) {
+  TipoValor valorDigitado = 0;
+  int escolha = 1;
+  Peso peso;
+  int capacidade;
 
-//   printf("Digite a capacidade da fila de prioridade:\n");
-//   scanf("%d", &capacidade);
+  printf("Digite a capacidade da Fila de Prioridade:\n");
+  scanf("%d", &capacidade);
 
-//   FilaDePrioridade *fila = CriarFilaDePrioridade(capacidade);
+  FilaDePrioridade *fila = CriarFilaDePrioridade(capacidade);
 
-//   if (!fila) {
-//     printf("Erro ao criar a fila de prioridade\n");
-//     return 1;
-//   }
+  if (!fila) {
+    printf("Erro ao criar a fila de prioridade.\n");
+    return 1;
+  }
 
-//   DestruirFila(fila);
+  while (escolha > 0 && escolha < 6) {
+    printf("\nQual acao deseja realizar?\n");
+    printf("1 - Adicionar elemento\n");
+    printf("2 - Remover elemento de menor prioridade\n");
+    printf("3 - Alterar prioridade\n");
+    printf("4 - Imprimir fila\n");
+    printf("5 - Limpar fila\n");
+    printf("6 - Sair\n");
 
-//   return 0;
-// }
+    scanf("%d", &escolha);
+    printf("\n");
+
+    valorDigitado = 0;
+
+    switch (escolha) {
+    case 1:
+      printf("Digite um valor negativo para parar\n");
+      while (valorDigitado >= 0) {
+        printf("Digite o id do elemento (0 a %d)\n", fila->tamanho - 1);
+        scanf("%d", &valorDigitado);
+
+        if (valorDigitado < 0) break;
+
+        printf("Digite o peso\n");
+        scanf("%f", &peso);
+
+        Boolean funcaoSucedida = AdicionarElemento(fila, valorDigitado, peso);
+
+        if (funcaoSucedida)
+          ImprimirValores(fila);
+        else
+          printf("\nO elemento nao foi inserido\n");
+      }
+      break;
+
+    case 2: {
+      int idRemovido = RemoverElemento(fila);
+      if (idRemovido >= 0) {
+        printf("Elemento removido com id=%d\n", idRemovido);
+        ImprimirValores(fila);
+      } else {
+        printf("Falha na remocao\n");
+      }
+      break;
+    }
+
+    case 3:
+      printf("Digite o id do elemento a ser alterado\n");
+      scanf("%d", &valorDigitado);
+
+      if (valorDigitado < 0) break;
+
+      printf("Digite o novo peso\n");
+      scanf("%f", &peso);
+
+      Boolean funcaoSucedida = AlterarPrioridade(fila, valorDigitado, peso);
+
+      if (funcaoSucedida) {
+        printf("\nPrioridade alterada com sucesso\n");
+        ImprimirValores(fila);
+      } else {
+        printf("\nNao foi possivel alterar a prioridade desse elemento\n");
+      }
+      break;
+
+    case 4:
+      ImprimirValores(fila);
+      break;
+
+    case 5:
+      LimparFilaDePrioridade(fila);
+      printf("Fila limpa\n");
+      break;
+    }
+  }
+
+  DestruirFilaDePrioridade(fila);
+  return 0;
+}
