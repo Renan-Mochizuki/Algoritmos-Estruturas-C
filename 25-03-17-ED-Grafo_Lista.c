@@ -334,7 +334,7 @@ void VisitarGrafoProfundidadeCores(Grafo *grafo, int vertice, int *tempo, int *c
   tempoTermino[vertice] = *tempo;
 }
 
-// Função que visita o grafo por profundidade percorrendo todos os vértices
+// Função que visita o grafo por profundidade percorrendo todos os vértices e armazenando as cores, tempos de descoberta e término, e o vértice anterior visitado
 void BuscaProfundidadeCores(Grafo *grafo) {
   if (!ValidarParametros(grafo, 0, 0)) return;
 
@@ -370,10 +370,7 @@ void BuscaProfundidadeCores(Grafo *grafo) {
     }
   }
 
-  // Cabeçalho: alinhado à esquerda
   printf("%-8s %-10s %-12s %-10s %-4s\n", "Vertice", "Anterior", "Descoberta", "Termino", "Cor");
-
-  // Valores: alinhados à direita
   for (int i = 0; i < grafo->numVertices; i++) {
     printf("%8d %10d %12d %10d %4d\n", i, anterior[i], tempoDescoberta[i], tempoTermino[i], cor[i]);
   }
@@ -455,11 +452,8 @@ Boolean VisitarGrafoProfundidadeCaminho(Grafo *grafo, int verticeAtual, int vert
 
 // Função que encontra o caminho entre dois vértices
 No *BuscaProfundidadeCaminho(Grafo *grafo, int verticeOrigem, int verticeDestino) {
-  if (!ValidarParametros(grafo, verticeOrigem, verticeDestino)) {
-    printf("Parâmetros inválidos\n");
-    return NULL;
-  }
-
+  if (!ValidarParametros(grafo, verticeOrigem, verticeDestino)) return NULL;
+  
   // Alocando um array para verificar se o vertice foi visitado
   Boolean *visitado = malloc(sizeof(Boolean) * grafo->numVertices);
 
@@ -601,7 +595,7 @@ int *BuscaProfundidadeComponenteConexo(Grafo *grafo) {
     return NULL;
   }
 
-  // Inicializando o array com FALSE
+  // Inicializando as arrays
   for (int i = 0; i < grafo->numVertices; i++) {
     visitado[i] = FALSE;
     componentesConexos[i] = -1;
