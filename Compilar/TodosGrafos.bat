@@ -6,3 +6,4 @@ gcc -Wall -Wextra -g3 ..\Auxiliares\Fila_Ligada.c ..\25-03-17-ED-Grafo_Lista.c -
 gcc -Wall -Wextra -g3 ..\Auxiliares\Fila_Ligada.c ..\25-03-18-ED-Grafo_Direcionado_Lista.c -o ..\output\25-03-18-ED-Grafo_Direcionado_Lista.exe
 gcc -Wall -Wextra -g3 ..\Auxiliares\Fila_Ligada.c ..\25-03-18-ED-Grafo_Ponderado_Lista.c -o ..\output\25-03-18-ED-Grafo_Ponderado_Lista.exe
 gcc -Wall -Wextra -g3 ..\Auxiliares\Fila_Ligada.c ..\25-03-20-ED-Grafo_Ponderado_Direcionado_Lista.c -o ..\output\25-03-20-ED-Grafo_Ponderado_Direcionado_Lista.exe
+pause
