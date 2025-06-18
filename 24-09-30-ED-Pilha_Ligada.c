@@ -8,9 +8,9 @@
 typedef int Boolean;
 typedef int TipoValor;
 
-typedef struct node {
+typedef struct nodePilha {
   TipoValor valor;
-  struct node *proximo;
+  struct nodePilha *proximo;
 } itemNo;
 
 typedef struct {
