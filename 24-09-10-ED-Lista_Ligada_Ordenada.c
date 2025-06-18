@@ -39,7 +39,7 @@ void InserirValorLista(ListaLigada *lista, TipoValor valor) {
   itemNo *itemAtual = lista->primeiro;
 
   // Loop que percorre a lista até a posição correta ou o final da lista
-  while(itemAtual->proximo != NULL && itemAtual->proximo->valor < valor ) {
+  while (itemAtual->proximo != NULL && itemAtual->proximo->valor < valor) {
     itemAtual = itemAtual->proximo;
   }
 
@@ -145,65 +145,65 @@ int main(void) {
     printf("\n");
 
     switch (escolha) {
-      case 1:
-        printf("Digite um numero negativo para parar\n");
-        while (valorDigitado >= 0) {
-          printf("Digite um numero para ser inserido\n");
-          scanf(FormatoValor, &valorDigitado);
+    case 1:
+      printf("Digite um numero negativo para parar\n");
+      while (valorDigitado >= 0) {
+        printf("Digite um numero para ser inserido\n");
+        scanf(FormatoValor, &valorDigitado);
 
-          if (valorDigitado < 0) break;
+        if (valorDigitado < 0) break;
 
-          InserirValorLista(lista, valorDigitado);
-          ImprimirLista(lista);
-        }
-        break;
+        InserirValorLista(lista, valorDigitado);
+        ImprimirLista(lista);
+      }
+      break;
 
-        case 2:
-        printf("Digite um numero negativo para parar\n");
-        while (valorDigitado >= 0) {
-          printf("Digite um valor para ser removido\n");
-          scanf(FormatoValor, &valorDigitado);
+    case 2:
+      printf("Digite um numero negativo para parar\n");
+      while (valorDigitado >= 0) {
+        printf("Digite um valor para ser removido\n");
+        scanf(FormatoValor, &valorDigitado);
 
-          if (valorDigitado < 0) break;
+        if (valorDigitado < 0) break;
 
-          int sucedido = RemoverValorLista(lista, valorDigitado);
-          if (sucedido) {
+        int sucedido = RemoverValorLista(lista, valorDigitado);
+        if (sucedido) {
           printf("O valor %d foi removido da lista\n", valorDigitado);
           ImprimirLista(lista);
-          } else {
+        } else {
           printf("O valor não foi encontrado\n");
-          }
         }
-        break;
+      }
+      break;
 
-      case 3:
-        printf("Digite um numero negativo para parar\n");
-        while (valorDigitado >= 0) {
-          printf("Digite um valor para ser buscado\n");
-          scanf(FormatoValor, &valorDigitado);
+    case 3:
+      printf("Digite um numero negativo para parar\n");
+      while (valorDigitado >= 0) {
+        printf("Digite um valor para ser buscado\n");
+        scanf(FormatoValor, &valorDigitado);
 
-          if (valorDigitado < 0) break;
+        if (valorDigitado < 0) break;
 
-          int indiceEncontrado = BuscarValorLista(lista, valorDigitado);
-          if (indiceEncontrado >= 0) {
+        int indiceEncontrado = BuscarValorLista(lista, valorDigitado);
+        if (indiceEncontrado >= 0) {
           printf("O valor %d foi encontrado no indice %d\n", valorDigitado, indiceEncontrado);
-          } else {
+        } else {
           printf("O valor nao foi encontrado\n");
-          }
         }
-        break;
+      }
+      break;
 
-      case 4:
-        printf("A lista possui " FormatoValor " itens\n", lista->tamanho);
-        break;
+    case 4:
+      printf("A lista possui " FormatoValor " itens\n", lista->tamanho);
+      break;
 
-      case 5:
-        ImprimirLista(lista);
-        break;
+    case 5:
+      ImprimirLista(lista);
+      break;
 
-      case 6:
-        LimparLista(lista);
-        break;
+    case 6:
+      LimparLista(lista);
+      break;
     }
   }
 

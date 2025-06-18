@@ -9,212 +9,218 @@ typedef int Boolean;
 typedef int TipoValor;
 
 typedef struct node {
-    TipoValor valor;
-    struct node * proximo;
-} itemNo;	
+  TipoValor valor;
+  struct node *proximo;
+} itemNo;
 
 typedef struct {
-    itemNo * primeiro;
-    itemNo * ultimo;
-    int tamanho;
+  itemNo *primeiro;
+  itemNo *ultimo;
+  int tamanho;
 } Fila;
 
 // Função que retorna o ponteiro para uma fila
-Fila * CriarFila(){
-    Fila * fila = malloc(sizeof(Fila));
-    fila->primeiro = NULL;
-    fila->ultimo = NULL;
-    fila->tamanho = 0;
-    return fila;
+Fila *CriarFila() {
+  Fila *fila = malloc(sizeof(Fila));
+  fila->primeiro = NULL;
+  fila->ultimo = NULL;
+  fila->tamanho = 0;
+  return fila;
 }
 
 // Função que limpa a fila
-void LimparFila(Fila * fila){
-    itemNo *itemAtual = fila->primeiro;
+void LimparFila(Fila *fila) {
+  itemNo *itemAtual = fila->primeiro;
 
-    // Loop que percorre a fila
-    for(int i = 0; i < fila->tamanho; i++){
-        itemNo *itemProximo = itemAtual->proximo;
-        // Libera o itemAtual e avança para o próximo
-        free(itemAtual);
-        itemAtual = itemProximo;
-    }
+  // Loop que percorre a fila
+  for (int i = 0; i < fila->tamanho; i++) {
+    itemNo *itemProximo = itemAtual->proximo;
+    // Libera o itemAtual e avança para o próximo
+    free(itemAtual);
+    itemAtual = itemProximo;
+  }
 
-    // Resetando parâmetros
-    fila->primeiro = NULL;
-    fila->ultimo = NULL;
-    fila->tamanho = 0;
+  // Resetando parâmetros
+  fila->primeiro = NULL;
+  fila->ultimo = NULL;
+  fila->tamanho = 0;
 }
 
 // Função que destroi a fila
-void DestruirFila(Fila * fila){
-    LimparFila(fila);
-    free(fila);
+void DestruirFila(Fila *fila) {
+  LimparFila(fila);
+  free(fila);
 }
 
 // Função que imprime os valores da fila
-void ImprimirValores(Fila * fila){
-    if(fila->tamanho == 0){
-        printf("\nA fila esta vazia\n");
-        return;
-    }
+void ImprimirValoresFila(Fila *fila) {
+  if (fila->tamanho == 0) {
+    printf("\nA fila esta vazia\n");
+    return;
+  }
 
-    itemNo * itemAtual = fila->primeiro;
+  itemNo *itemAtual = fila->primeiro;
 
-    printf("\nFila: ");
-    // Loop que percorre a fila
-    for(int i = 0; i < fila->tamanho; i++){
-        printf("%d, ", itemAtual->valor);
-        itemAtual = itemAtual->proximo;
-    }
-    printf("\n\n");
+  printf("\nFila: ");
+  // Loop que percorre a fila
+  for (int i = 0; i < fila->tamanho; i++) {
+    printf("%d, ", itemAtual->valor);
+    itemAtual = itemAtual->proximo;
+  }
+  printf("\n\n");
 }
 
 // Função que vai inserir um valor no final da fila
-Boolean InserirValor(Fila * fila, TipoValor valor){
-    itemNo * novoItem = malloc(sizeof(itemNo));
-    novoItem->valor = valor;
-    novoItem->proximo = NULL;
+Boolean InserirValorFila(Fila *fila, TipoValor valor) {
+  itemNo *novoItem = malloc(sizeof(itemNo));
+  novoItem->valor = valor;
+  novoItem->proximo = NULL;
 
-    // Se a fila estiver vazia
-    if(!fila->primeiro){
-        fila->primeiro = novoItem;
-        fila->ultimo = novoItem;
-    } else { // Fila não está vazia
-        itemNo * ultimoAtual = fila->ultimo;
-        ultimoAtual->proximo = novoItem;
+  // Se a fila estiver vazia
+  if (!fila->primeiro) {
+    fila->primeiro = novoItem;
+    fila->ultimo = novoItem;
+  } else { // Fila não está vazia
+    itemNo *ultimoAtual = fila->ultimo;
+    ultimoAtual->proximo = novoItem;
 
-        // Atualiza o último item da fila
-        fila->ultimo = novoItem;
-    }
+    // Atualiza o último item da fila
+    fila->ultimo = novoItem;
+  }
 
-    fila->tamanho++;
-    return TRUE;
+  fila->tamanho++;
+  return TRUE;
 }
 
 // Função que vai remover o primeiro valor da fila
-Boolean RemoverValor(Fila * fila) {
-    // Se a fila estiver vazia
-    if (fila->tamanho == 0) return FALSE;
+Boolean RemoverValorFila(Fila *fila) {
+  // Se a fila estiver vazia
+  if (fila->tamanho == 0) return FALSE;
 
-    itemNo * primeiroItem = fila->primeiro;
+  itemNo *primeiroItem = fila->primeiro;
 
-    // Alterando o primeiro da fila
-    fila->primeiro = primeiroItem->proximo;
+  // Alterando o primeiro da fila
+  fila->primeiro = primeiroItem->proximo;
 
-    free(primeiroItem);
-    fila->tamanho--;
+  free(primeiroItem);
+  fila->tamanho--;
 
-    return TRUE;
+  return TRUE;
 }
 
 // Função que busca um valor na fila
-int BuscarValor(Fila * fila, TipoValor valor){
-    itemNo * itemAtual = fila->primeiro;
+int BuscarValorFila(Fila *fila, TipoValor valor) {
+  itemNo *itemAtual = fila->primeiro;
 
-    // Loop que percorre a fila
-    for(int i = 0; i < fila->tamanho; i++){
-        if(itemAtual->valor == valor){
-            return i;
-        }
-        itemAtual = itemAtual->proximo;
+  // Loop que percorre a fila
+  for (int i = 0; i < fila->tamanho; i++) {
+    if (itemAtual->valor == valor) {
+      return i;
     }
+    itemAtual = itemAtual->proximo;
+  }
 
-    return -1;
+  return -1;
 }
 
-int main(void){
-    TipoValor valorDigitado;
-    int escolha = 1;
+// Função que verifica se a fila está vazia
+Boolean FilaVazia(Fila *fila) {
+  if (fila->tamanho == 0) return TRUE;
+  return FALSE;
+}
 
-    Fila* fila = CriarFila();
+int main(void) {
+  TipoValor valorDigitado;
+  int escolha = 1;
 
-    while (escolha > 0 && escolha < 7) {
-        printf("\nQual acao deseja realizar?\n");
-        printf("1 - Inserir valores na fila\n");
-        printf("2 - Remover proximo valor da fila\n");
-        printf("3 - Buscar valores\n");
-        printf("4 - Ver quantos itens a fila possui\n");
-        printf("5 - Imprimir fila\n");
-        printf("6 - Limpar fila\n");
-        printf("7 - Sair\n");
+  Fila *fila = CriarFila();
 
-        scanf("%d", &escolha);
-        printf("\n");
+  while (escolha > 0 && escolha < 7) {
+    printf("\nQual acao deseja realizar?\n");
+    printf("1 - Inserir valores na fila\n");
+    printf("2 - Remover proximo valor da fila\n");
+    printf("3 - Buscar valores\n");
+    printf("4 - Ver quantos itens a fila possui\n");
+    printf("5 - Imprimir fila\n");
+    printf("6 - Limpar fila\n");
+    printf("7 - Sair\n");
 
-        valorDigitado = 0;
+    scanf("%d", &escolha);
+    printf("\n");
 
-        switch (escolha) {
-        case 1:
-            printf("Digite um valor negativo para parar\n");
-            while (valorDigitado >= 0) {
-                printf("Digite um valor para ser inserido\n");
-                scanf(FormatoValor, &valorDigitado);
+    valorDigitado = 0;
 
-                if (valorDigitado < 0) break;
+    switch (escolha) {
+    case 1:
+      printf("Digite um valor negativo para parar\n");
+      while (valorDigitado >= 0) {
+        printf("Digite um valor para ser inserido\n");
+        scanf(FormatoValor, &valorDigitado);
 
-                Boolean funcaoSucedida = InserirValor(fila, valorDigitado);
+        if (valorDigitado < 0) break;
 
-                if (funcaoSucedida) {
-                    ImprimirValores(fila);
-                } else {
-                    printf("\nA capacidade da fila foi ultrapassada\n");
-                    break;
-                }
-            }
-            break;
+        Boolean funcaoSucedida = InserirValorFila(fila, valorDigitado);
 
-        case 2: {
-            Boolean funcaoSucedida = RemoverValor(fila);
-
-            if (funcaoSucedida) {
-                ImprimirValores(fila);
-            } else {
-                printf("\nA fila esta vazia\n");
-            }
-
-            break;
+        if (funcaoSucedida) {
+          ImprimirValoresFila(fila);
+        } else {
+          printf("\nA capacidade da fila foi ultrapassada\n");
+          break;
         }
+      }
+      break;
 
-        case 3:
-            if (fila->tamanho == 0) {
-                printf("A fila esta vazia\n");
-                break;
-            }
+    case 2: {
+      Boolean funcaoSucedida = RemoverValorFila(fila);
 
-            printf("Digite um valor negativo para parar\n");
-            while (valorDigitado >= 0) {
-                printf("Digite um valor para ser buscado\n");
-                scanf(FormatoValor, &valorDigitado);
+      if (funcaoSucedida) {
+        ImprimirValoresFila(fila);
+      } else {
+        printf("\nA fila esta vazia\n");
+      }
 
-                if (valorDigitado < 0) break;
-
-                int posicaoEncontrada = BuscarValor(fila, valorDigitado);
-
-                if (posicaoEncontrada == -1) {
-                    printf("\nO valor nao foi encontrado\n\n");
-                } else {
-                    printf("\nO valor foi encontrado na posicao %d\n\n", posicaoEncontrada);
-                }
-            }
-            break;
-
-        case 4:
-            printf("A fila possui %d itens\n", fila->tamanho);
-            break;
-
-        case 5:
-            ImprimirValores(fila);
-            break;
-
-        case 6:
-            LimparFila(fila);
-            printf("A fila foi limpa\n");
-            break;
-        }
+      break;
     }
 
-    DestruirFila(fila);
+    case 3:
+      if (fila->tamanho == 0) {
+        printf("A fila esta vazia\n");
+        break;
+      }
 
-    return 0;
+      printf("Digite um valor negativo para parar\n");
+      while (valorDigitado >= 0) {
+        printf("Digite um valor para ser buscado\n");
+        scanf(FormatoValor, &valorDigitado);
+
+        if (valorDigitado < 0) break;
+
+        int posicaoEncontrada = BuscarValorFila(fila, valorDigitado);
+
+        if (posicaoEncontrada == -1) {
+          printf("\nO valor nao foi encontrado\n\n");
+        } else {
+          printf("\nO valor foi encontrado na posicao %d\n\n", posicaoEncontrada);
+        }
+      }
+      break;
+
+    case 4:
+      printf("A fila possui %d itens\n", fila->tamanho);
+      break;
+
+    case 5:
+      ImprimirValoresFila(fila);
+      break;
+
+    case 6:
+      LimparFila(fila);
+      printf("A fila foi limpa\n");
+      break;
+    }
+  }
+
+  DestruirFila(fila);
+
+  return 0;
 }
