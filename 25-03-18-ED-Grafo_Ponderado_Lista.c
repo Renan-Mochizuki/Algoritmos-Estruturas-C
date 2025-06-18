@@ -79,7 +79,7 @@ void LimparGrafo(Grafo *grafo) {
   // Loops que percorrem cada item da array e apaga cada nó
   for (int i = 0; i < grafo->numVertices; i++) {
     No *noAtual = grafo->lista[i];
-    while(noAtual){
+    while (noAtual) {
       No *apagar = noAtual;
       noAtual = noAtual->proximo;
       free(apagar);
@@ -96,7 +96,7 @@ void DestruirGrafo(Grafo *grafo) {
   // Loops que percorrem cada item da array e apaga cada nó
   for (int i = 0; i < grafo->numVertices; i++) {
     No *noAtual = grafo->lista[i];
-    while(noAtual){
+    while (noAtual) {
       No *apagar = noAtual;
       noAtual = noAtual->proximo;
       free(apagar);
@@ -120,7 +120,7 @@ Boolean InserirArestaLista(Grafo *grafo, int vertice1, int vertice2, Peso peso) 
   No *noAtual = grafo->lista[vertice1];
   No *noAnterior = NULL;
 
-  // Loop que percorre a lista até a posição de ordenação correta ou até o NULL 
+  // Loop que percorre a lista até a posição de ordenação correta ou até o NULL
   while (noAtual && noAtual->vertice < vertice2) {
     noAnterior = noAtual;
     noAtual = noAtual->proximo;
@@ -134,16 +134,23 @@ Boolean InserirArestaLista(Grafo *grafo, int vertice1, int vertice2, Peso peso) 
   }
 
   No *novoNo = malloc(sizeof(No));
+
+  // Se a alocação não foi bem sucedida
+  if (!novoNo) {
+    printf("Erro ao alocar memória para o novo nó\n");
+    return FALSE;
+  }
+
   novoNo->vertice = vertice2;
   novoNo->peso = peso;
   novoNo->proximo = noAtual;
 
   // Se não tiver anterior, então altere o primeiro nó
-  if(!noAnterior) {
+  if (!noAnterior) {
     grafo->lista[vertice1] = novoNo;
     return TRUE;
   }
-  
+
   noAnterior->proximo = novoNo;
 
   return TRUE;
@@ -157,8 +164,8 @@ Boolean InserirAresta(Grafo *grafo, int vertice1, int vertice2, Peso peso) {
 
   Boolean noFoiInserido = InserirArestaLista(grafo, vertice1, vertice2, peso);
   InserirArestaLista(grafo, vertice2, vertice1, peso);
-  
-  if(noFoiInserido) {
+
+  if (noFoiInserido) {
     grafo->numArestas++;
   }
 
@@ -170,24 +177,24 @@ Boolean RemoverArestaLista(Grafo *grafo, int vertice1, int vertice2) {
   No *noAtual = grafo->lista[vertice1];
   No *noAnterior = NULL;
 
-  // Loop que percorre a lista até a posição de ordenação correta ou até o NULL 
+  // Loop que percorre a lista até a posição de ordenação correta ou até o NULL
   while (noAtual && noAtual->vertice < vertice2) {
     noAnterior = noAtual;
     noAtual = noAtual->proximo;
   }
 
   // Se o nó não foi encontrado, retorne falso
-  if (noAtual && noAtual->vertice != vertice2) {
+  if (!noAtual || noAtual->vertice != vertice2) {
     return FALSE;
   }
-
+  
   // Se não tiver anterior, então altere o primeiro nó
-  if(!noAnterior) {
+  if (!noAnterior) {
     grafo->lista[vertice1] = noAtual->proximo;
     free(noAtual);
     return TRUE;
   }
-  
+
   noAnterior->proximo = noAtual->proximo;
   free(noAtual);
 
@@ -195,13 +202,13 @@ Boolean RemoverArestaLista(Grafo *grafo, int vertice1, int vertice2) {
 }
 
 // Função que remove uma aresta
-Boolean RemoveAresta(Grafo *grafo, int vertice1, int vertice2) {
+Boolean RemoverAresta(Grafo *grafo, int vertice1, int vertice2) {
   if (!ValidarParametros(grafo, vertice1, vertice2)) return FALSE;
 
   Boolean noFoiInserido = RemoverArestaLista(grafo, vertice1, vertice2);
   RemoverArestaLista(grafo, vertice2, vertice1);
-  
-  if(noFoiInserido) {
+
+  if (noFoiInserido) {
     grafo->numArestas--;
   }
 
@@ -232,7 +239,7 @@ int RetornarGrau(Grafo *grafo, int vertice) {
   if (!ValidarParametros(grafo, vertice, 0)) return -1;
 
   int grau = 0;
-  
+
   No *noAtual = grafo->lista[vertice];
   while (noAtual) {
     grau++;
@@ -247,7 +254,7 @@ Boolean VerificarPossuiVizinho(Grafo *grafo, int vertice) {
   if (!ValidarParametros(grafo, vertice, 0)) return FALSE;
 
   // Se existir um nó na lista de adjacência do vértice, então ele possui vizinhos
-  if(grafo->lista[vertice]) {
+  if (grafo->lista[vertice]) {
     return TRUE;
   }
 
@@ -255,11 +262,10 @@ Boolean VerificarPossuiVizinho(Grafo *grafo, int vertice) {
 }
 
 // Função que retorna o número de arestas
-int RetornarNumeroArestas(Grafo *grafo) { 
-  if(!grafo) return -1;
-  return grafo->numArestas; 
+int RetornarNumeroArestas(Grafo *grafo) {
+  if (!grafo) return -1;
+  return grafo->numArestas;
 }
-
 
 // Função recursiva que visita todos os vértices adjacentes a um vértice passado
 void VisitarGrafoProfundidade(Grafo *grafo, int vertice, Boolean *visitado, int verticeAnterior) {
@@ -383,7 +389,7 @@ int main(void) {
 
         if (vertice2 < 0) break;
 
-        Boolean funcaoSucedida = RemoveAresta(grafo, vertice1, vertice2);
+        Boolean funcaoSucedida = RemoverAresta(grafo, vertice1, vertice2);
 
         if (funcaoSucedida)
           ImprimirValores(grafo);

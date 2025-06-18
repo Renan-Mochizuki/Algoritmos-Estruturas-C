@@ -1,3 +1,4 @@
+#include "./Auxiliares/Fila_Ligada.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -130,6 +131,13 @@ Boolean InserirArestaLista(Grafo *grafo, int vertice1, int vertice2) {
   }
 
   No *novoNo = malloc(sizeof(No));
+
+  // Se a alocação não foi bem sucedida
+  if(!novoNo) {
+    printf("Erro ao alocar memória para o novo nó\n");
+    return FALSE;
+  }
+
   novoNo->vertice = vertice2;
   novoNo->proximo = noAtual;
 
@@ -169,7 +177,7 @@ Boolean RemoverArestaLista(Grafo *grafo, int vertice1, int vertice2) {
   }
 
   // Se o nó não foi encontrado, retorne falso
-  if (noAtual && noAtual->vertice != vertice2) {
+  if (!noAtual || noAtual->vertice != vertice2) {
     return FALSE;
   }
 
@@ -187,7 +195,7 @@ Boolean RemoverArestaLista(Grafo *grafo, int vertice1, int vertice2) {
 }
 
 // Função que remove uma aresta
-Boolean RemoveAresta(Grafo *grafo, int vertice1, int vertice2) {
+Boolean RemoverAresta(Grafo *grafo, int vertice1, int vertice2) {
   if (!ValidarParametros(grafo, vertice1, vertice2)) return FALSE;
 
   Boolean noFoiInserido = RemoverArestaLista(grafo, vertice1, vertice2);
@@ -359,7 +367,7 @@ void BuscaProfundidadeCores(Grafo *grafo) {
   if (!ValidarParametros(grafo, 0, 0)) return;
 
   // Alocando um array para armazenar a cor de cada vértice;
-  // Cor: 1 - Branco (Ainda não visitado), 2 - Cinza (Sendo processado), 3 - Preto (Finalizado)
+  // Cor: 0 - Branco (Ainda não visitado), 1 - Cinza (Sendo processado), 2 - Preto (Finalizado)
   // Tempo de descoberta e término e o vértice anterior visitado de cada vértice
   int *cor = malloc(sizeof(int) * grafo->numVertices);
   int *tempoDescoberta = malloc(sizeof(int) * grafo->numVertices);
@@ -390,10 +398,8 @@ void BuscaProfundidadeCores(Grafo *grafo) {
     }
   }
 
-  // Cabeçalho: alinhado à esquerda
   printf("%-8s %-10s %-12s %-10s %-4s\n", "Vertice", "Anterior", "Descoberta", "Termino", "Cor");
 
-  // Valores: alinhados à direita
   for (int i = 0; i < grafo->numVertices; i++) {
     printf("%8d %10d %12d %10d %4d\n", i, anterior[i], tempoDescoberta[i], tempoTermino[i], cor[i]);
   }
@@ -826,104 +832,6 @@ void ImprimirComponentesConexos(Grafo *grafo, int *componentesConexos) {
   }
 }
 
-
-// Implementação da fila
-typedef struct nodeFila {
-  int valor;
-  struct nodeFila *proximo;
-} NoFila;
-
-typedef struct {
-  NoFila *primeiro;
-  NoFila *ultimo;
-  int tamanho;
-} Fila;
-
-// Função que retorna o ponteiro para uma fila
-Fila *CriarFila() {
-  Fila *fila = malloc(sizeof(Fila));
-  fila->primeiro = NULL;
-  fila->ultimo = NULL;
-  fila->tamanho = 0;
-  return fila;
-}
-
-// Função que destroi a fila
-void DestruirFila(Fila *fila) {
-  if (!fila) return;
-
-  NoFila *noAtual = fila->primeiro;
-  while (noAtual) {
-    NoFila *noProximo = noAtual->proximo;
-    free(noAtual);
-    noAtual = noProximo;
-  }
-
-  free(fila);
-}
-
-// Função que vai inserir um valor no final da fila
-Boolean InserirValorFila(Fila *fila, TipoValor valor) {
-  NoFila *novoItem = malloc(sizeof(NoFila));
-  novoItem->valor = valor;
-  novoItem->proximo = NULL;
-
-  // Se a fila estiver vazia
-  if (!fila->primeiro) {
-    fila->primeiro = novoItem;
-    fila->ultimo = novoItem;
-  } else { // Fila não está vazia
-    NoFila *ultimoAtual = fila->ultimo;
-    ultimoAtual->proximo = novoItem;
-
-    // Atualiza o último item da fila
-    fila->ultimo = novoItem;
-  }
-
-  fila->tamanho++;
-  return TRUE;
-}
-
-// Função que vai remover o primeiro valor da fila
-Boolean RemoverValorFila(Fila *fila) {
-  // Se a fila estiver vazia
-  if (fila->tamanho == 0) return FALSE;
-
-  NoFila *primeiroItem = fila->primeiro;
-
-  // Alterando o primeiro da fila
-  fila->primeiro = primeiroItem->proximo;
-
-  free(primeiroItem);
-  fila->tamanho--;
-
-  return TRUE;
-}
-
-// Função que imprime os valores da fila
-void ImprimirValoresFila(Fila *fila) {
-  if (fila->tamanho == 0) {
-    printf("A fila esta vazia\n");
-    return;
-  }
-
-  NoFila *itemAtual = fila->primeiro;
-
-  printf("Fila: ");
-  // Loop que percorre a fila
-  for (int i = 0; i < fila->tamanho; i++) {
-    printf("%d, ", itemAtual->valor);
-    itemAtual = itemAtual->proximo;
-  }
-  printf("\n");
-}
-
-// Função que verifica se a fila está vazia
-Boolean FilaVazia(Fila *fila) {
-  if (fila->tamanho == 0) return TRUE;
-  return FALSE;
-}
-
 void VisitarGrafoLargura(Grafo *grafo, int vertice, Boolean *visitado) {
   visitado[vertice] = TRUE;
 
@@ -1056,7 +964,7 @@ int main(void) {
 
         if (vertice2 < 0) break;
 
-        Boolean funcaoSucedida = RemoveAresta(grafo, vertice1, vertice2);
+        Boolean funcaoSucedida = RemoverAresta(grafo, vertice1, vertice2);
 
         if (funcaoSucedida)
           ImprimirValores(grafo);

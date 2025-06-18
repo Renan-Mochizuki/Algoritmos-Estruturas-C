@@ -134,7 +134,7 @@ Boolean InserirAresta(Grafo *grafo, int vertice1, int vertice2) {
 }
 
 // Função que remove uma aresta
-Boolean RemoveAresta(Grafo *grafo, int vertice1, int vertice2) {
+Boolean RemoverAresta(Grafo *grafo, int vertice1, int vertice2) {
   if (!ValidarParametros(grafo, vertice1, vertice2)) return FALSE;
 
   // Verificação para garantir que o numArestas não diminua caso a aresta já existir
@@ -749,7 +749,7 @@ int main(void) {
 
         if (vertice2 < 0) break;
 
-        Boolean funcaoSucedida = RemoveAresta(grafo, vertice1, vertice2);
+        Boolean funcaoSucedida = RemoverAresta(grafo, vertice1, vertice2);
 
         if (funcaoSucedida)
           ImprimirValores(grafo);
