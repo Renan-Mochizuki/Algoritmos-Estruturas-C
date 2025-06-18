@@ -1,3 +1,4 @@
+#include "./Auxiliares/Fila_Ligada.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -130,6 +131,13 @@ Boolean InserirArestaLista(Grafo *grafo, int vertice1, int vertice2) {
   }
 
   No *novoNo = malloc(sizeof(No));
+
+  // Se a alocação não foi bem sucedida
+  if (!novoNo) {
+    printf("Erro ao alocar memória para o novo nó\n");
+    return FALSE;
+  }
+
   novoNo->vertice = vertice2;
   novoNo->proximo = noAtual;
 
@@ -172,7 +180,7 @@ Boolean RemoverArestaLista(Grafo *grafo, int vertice1, int vertice2) {
   }
 
   // Se o nó não foi encontrado, retorne falso
-  if (noAtual && noAtual->vertice != vertice2) {
+  if (!noAtual || noAtual->vertice != vertice2) {
     return FALSE;
   }
 
@@ -190,7 +198,7 @@ Boolean RemoverArestaLista(Grafo *grafo, int vertice1, int vertice2) {
 }
 
 // Função que remove uma aresta
-Boolean RemoveAresta(Grafo *grafo, int vertice1, int vertice2) {
+Boolean RemoverAresta(Grafo *grafo, int vertice1, int vertice2) {
   if (!ValidarParametros(grafo, vertice1, vertice2)) return FALSE;
 
   Boolean noFoiInserido = RemoverArestaLista(grafo, vertice1, vertice2);
@@ -255,15 +263,15 @@ int RetornarNumeroArestas(Grafo *grafo) {
   return grafo->numArestas;
 }
 
-// Função recursiva que visita todos os vértices adjacentes a um vértice passado
+// Função recursiva que visita todos os vizinhos de um vértice passado, visitando primeiro os vizinhos dos vizinhos
 void VisitarGrafoProfundidade(Grafo *grafo, int vertice, Boolean *visitado, int verticeAnterior) {
   visitado[vertice] = TRUE;
   printf("Visitando o vertice %d (anterior: %d)\n", vertice, verticeAnterior);
 
   No *noAtual = grafo->lista[vertice];
-  // Loop que percorre cada item da lista para um determinado vertice
+  // Loop que percorre cada item da lista (vizinhos)
   while (noAtual) {
-    // Se o vertice i é adjacente ao vertice atual e ainda não foi visitado
+    // Se esse vizinho ainda não foi visitado
     if (!visitado[noAtual->vertice]) {
       VisitarGrafoProfundidade(grafo, noAtual->vertice, visitado, vertice);
     }
@@ -289,7 +297,7 @@ void BuscaProfundidade(Grafo *grafo) {
     visitado[i] = FALSE;
   }
 
-  // Loop que percorre cada item da lista
+  // Loop que percorre cada vertice
   for (int i = 0; i < grafo->numVertices; i++) {
     // Se o vertice ainda não foi visitado, chama a função recursiva
     if (!visitado[i]) {
@@ -300,7 +308,8 @@ void BuscaProfundidade(Grafo *grafo) {
   free(visitado);
 }
 
-// Função recursiva que visita todos os vértices adjacentes a um vértice passado
+// Função recursiva que visita todos os vizinhos de um vértice passado, visitando primeiro os vizinhos dos vizinhos
+// Essa função também atribui cores e tempos de descoberta e término
 void VisitarGrafoProfundidadeCores(Grafo *grafo, int vertice, int *tempo, int *cor, int *tempoDescoberta, int *tempoTermino, int *anterior) {
   // Aumentando o tempo, marcando o vertice como cinza e atribuindo o tempo de descoberta
   (*tempo)++;
@@ -308,12 +317,11 @@ void VisitarGrafoProfundidadeCores(Grafo *grafo, int vertice, int *tempo, int *c
   tempoDescoberta[vertice] = *tempo;
 
   No *noAtual = grafo->lista[vertice];
-  // Loop que percorre cada item da lista para um determinado vertice
+  // Loop que percorre cada item da lista (vizinhos)
   while (noAtual) {
     int verticeAtual = noAtual->vertice;
-    // Se o vertice i é adjacente ao vertice atual e ainda não foi visitado
+    // Se esse vizinho ainda não foi visitado (branco)
     if (cor[verticeAtual] == 0) {
-      // Atribuindo o vertice anterior
       anterior[verticeAtual] = vertice;
       VisitarGrafoProfundidadeCores(grafo, verticeAtual, tempo, cor, tempoDescoberta, tempoTermino, anterior);
     }
@@ -331,7 +339,7 @@ void BuscaProfundidadeCores(Grafo *grafo) {
   if (!ValidarParametros(grafo, 0, 0)) return;
 
   // Alocando um array para armazenar a cor de cada vértice;
-  // Cor: 1 - Branco (Ainda não visitado), 2 - Cinza (Sendo processado), 3 - Preto (Finalizado)
+  // Cor: 0 - Branco (Ainda não visitado), 1 - Cinza (Sendo processado), 2 - Preto (Finalizado)
   // Tempo de descoberta e término e o vértice anterior visitado de cada vértice
   int *cor = malloc(sizeof(int) * grafo->numVertices);
   int *tempoDescoberta = malloc(sizeof(int) * grafo->numVertices);
@@ -380,6 +388,7 @@ void BuscaProfundidadeCores(Grafo *grafo) {
 // Função que cria um novo nó
 No *CriarNovoNo(int vertice) {
   No *novoNo = malloc(sizeof(No));
+  if (!novoNo) return NULL;
   novoNo->vertice = vertice;
   novoNo->proximo = NULL;
   return novoNo;
@@ -482,7 +491,7 @@ No *BuscaProfundidadeCaminho(Grafo *grafo, int verticeOrigem, int verticeDestino
   return NULL;
 }
 
-// Função recursiva que visita todos os vértices adjacentes a um vértice passado
+// Função recursiva que visita todos os vértices adjacentes a um vértice passado, verificando se existe algum ciclo
 void VisitarGrafoProfundidadeVerificarCiclo(Grafo *grafo, int vertice, int *tempo, int *cor, int *tempoDescoberta, int *tempoTermino, int *anterior, int *possuiAlgumCiclo) {
   // Aumentando o tempo, marcando o vertice como cinza e atribuindo o tempo de descoberta
   (*tempo)++;
@@ -514,15 +523,13 @@ void VisitarGrafoProfundidadeVerificarCiclo(Grafo *grafo, int vertice, int *temp
   tempoTermino[vertice] = *tempo;
 }
 
-// Função que visita o grafo por profundidade percorrendo todos os vértices
+// Função que verifica se existe algum ciclo no grafo
 Boolean BuscaProfundidadeVerificarCiclo(Grafo *grafo) {
   if (!ValidarParametros(grafo, 0, 0)) return FALSE;
 
   Boolean possuiAlgumCiclo = FALSE;
 
-  // Alocando um array para armazenar a cor de cada vértice;
-  // Cor: 1 - Branco (Ainda não visitado), 2 - Cinza (Sendo processado), 3 - Preto (Finalizado)
-  // Tempo de descoberta e término e o vértice anterior visitado de cada vértice
+  // Alocando um array para armazenar a cor de cada vértice, tempo de descoberta e término e o vértice anterior visitado de cada vértice
   int *cor = malloc(sizeof(int) * grafo->numVertices);
   int *tempoDescoberta = malloc(sizeof(int) * grafo->numVertices);
   int *tempoTermino = malloc(sizeof(int) * grafo->numVertices);
@@ -560,7 +567,7 @@ Boolean BuscaProfundidadeVerificarCiclo(Grafo *grafo) {
   return possuiAlgumCiclo;
 }
 
-// Função recursiva que visita todos os vértices adjacentes a um vértice passado
+// Função recursiva que visita todos os vértices adjacentes a um vértice passado, atribuindo componentes conexos
 void VisitarGrafoProfundidadeComponenteConexo(Grafo *grafo, int vertice, Boolean *visitado, int componenteAtual, int *componentesConexos) {
   visitado[vertice] = TRUE;
   componentesConexos[vertice] = componenteAtual;
@@ -578,7 +585,7 @@ void VisitarGrafoProfundidadeComponenteConexo(Grafo *grafo, int vertice, Boolean
   }
 }
 
-// Função que visita o grafo por profundidade percorrendo todos os vértices
+// Função que encontra os componentes conexos do grafo usando busca em profundidade e retorna uma array com os componentes conexos
 int *BuscaProfundidadeComponenteConexo(Grafo *grafo) {
   if (!ValidarParametros(grafo, 0, 0)) return NULL;
 
@@ -638,103 +645,7 @@ void ImprimirComponentesConexos(Grafo *grafo, int *componentesConexos) {
   }
 }
 
-// Implementação da fila
-typedef struct nodeFila {
-  int valor;
-  struct nodeFila *proximo;
-} NoFila;
-
-typedef struct {
-  NoFila *primeiro;
-  NoFila *ultimo;
-  int tamanho;
-} Fila;
-
-// Função que retorna o ponteiro para uma fila
-Fila *CriarFila() {
-  Fila *fila = malloc(sizeof(Fila));
-  fila->primeiro = NULL;
-  fila->ultimo = NULL;
-  fila->tamanho = 0;
-  return fila;
-}
-
-// Função que destroi a fila
-void DestruirFila(Fila *fila) {
-  if (!fila) return;
-
-  NoFila *noAtual = fila->primeiro;
-  while (noAtual) {
-    NoFila *noProximo = noAtual->proximo;
-    free(noAtual);
-    noAtual = noProximo;
-  }
-
-  free(fila);
-}
-
-// Função que vai inserir um valor no final da fila
-Boolean InserirValorFila(Fila *fila, TipoValor valor) {
-  NoFila *novoItem = malloc(sizeof(NoFila));
-  novoItem->valor = valor;
-  novoItem->proximo = NULL;
-
-  // Se a fila estiver vazia
-  if (!fila->primeiro) {
-    fila->primeiro = novoItem;
-    fila->ultimo = novoItem;
-  } else { // Fila não está vazia
-    NoFila *ultimoAtual = fila->ultimo;
-    ultimoAtual->proximo = novoItem;
-
-    // Atualiza o último item da fila
-    fila->ultimo = novoItem;
-  }
-
-  fila->tamanho++;
-  return TRUE;
-}
-
-// Função que vai remover o primeiro valor da fila
-Boolean RemoverValorFila(Fila *fila) {
-  // Se a fila estiver vazia
-  if (fila->tamanho == 0) return FALSE;
-
-  NoFila *primeiroItem = fila->primeiro;
-
-  // Alterando o primeiro da fila
-  fila->primeiro = primeiroItem->proximo;
-
-  free(primeiroItem);
-  fila->tamanho--;
-
-  return TRUE;
-}
-
-// Função que imprime os valores da fila
-void ImprimirValoresFila(Fila *fila) {
-  if (fila->tamanho == 0) {
-    printf("A fila esta vazia\n");
-    return;
-  }
-
-  NoFila *itemAtual = fila->primeiro;
-
-  printf("Fila: ");
-  // Loop que percorre a fila
-  for (int i = 0; i < fila->tamanho; i++) {
-    printf("%d, ", itemAtual->valor);
-    itemAtual = itemAtual->proximo;
-  }
-  printf("\n");
-}
-
-// Função que verifica se a fila está vazia
-Boolean FilaVazia(Fila *fila) {
-  if (fila->tamanho == 0) return TRUE;
-  return FALSE;
-}
-
+// Função recursiva que visita o grafo por largura percorrendo todos os vértices
 void VisitarGrafoLargura(Grafo *grafo, int vertice, Boolean *visitado) {
   visitado[vertice] = TRUE;
 
@@ -742,6 +653,7 @@ void VisitarGrafoLargura(Grafo *grafo, int vertice, Boolean *visitado) {
   InserirValorFila(fila, vertice);
   ImprimirValoresFila(fila);
 
+  // Enquanto a fila não estiver vazia, continue visitando os vértices
   while (!FilaVazia(fila)) {
     int verticeAtual = fila->primeiro->valor;
     printf("Visitando o vertice %d\n", verticeAtual);
@@ -763,6 +675,7 @@ void VisitarGrafoLargura(Grafo *grafo, int vertice, Boolean *visitado) {
   DestruirFila(fila);
 }
 
+// Função que visita o grafo por largura percorrendo todos os vértices
 void BuscaLargura(Grafo *grafo) {
   if (!ValidarParametros(grafo, 0, 0)) return;
 
@@ -789,6 +702,86 @@ void BuscaLargura(Grafo *grafo) {
   free(visitado);
 }
 
+// Função recursiva que visita o grafo por largura começando por uma origem e para até achar um vértice destino
+Boolean VisitarGrafoLarguraCaminho(Grafo *grafo, int verticeOrigem, int verticeDestino, Boolean *visitado, int *anterior) {
+  Fila *fila = CriarFila();
+  InserirValorFila(fila, verticeOrigem);
+  visitado[verticeOrigem] = TRUE;
+  anterior[verticeOrigem] = -1;
+
+  while (!FilaVazia(fila)) {
+    int verticeAtual = fila->primeiro->valor;
+    RemoverValorFila(fila);
+
+    // Se o destino foi encontrado
+    if (verticeAtual == verticeDestino) {
+      DestruirFila(fila);
+      return TRUE;
+    }
+
+    // Reinicializar noAtual para o início da lista de adjacência do vértice atual
+    No *noAtual = grafo->lista[verticeAtual];
+    // Loop que percorre cada item da lista para um determinado vertice
+    while (noAtual) {
+      int vizinho = noAtual->vertice;
+      // Se o vertice i é adjacente ao vertice atual e ainda não foi visitado
+      if (!visitado[vizinho]) {
+        InserirValorFila(fila, vizinho);
+        visitado[vizinho] = TRUE;
+        anterior[vizinho] = verticeAtual;
+      }
+      noAtual = noAtual->proximo;
+    }
+  }
+  DestruirFila(fila);
+  return FALSE;
+}
+
+// Função que encontra o caminho entre dois vértices usando busca em largura
+No *BuscaLarguraCaminho(Grafo *grafo, int verticeOrigem, int verticeDestino) {
+  if (!ValidarParametros(grafo, verticeOrigem, verticeDestino)) return NULL;
+
+  // Alocando arrays para verificar se o vertice foi visitado e seu anterior
+  Boolean *visitado = malloc(sizeof(Boolean) * grafo->numVertices);
+  int *anterior = malloc(sizeof(int) * grafo->numVertices);
+
+  // Se a alocação não foi bem sucedida
+  if (!visitado || !anterior) {
+    printf("Erro ao alocar memória\n");
+    return NULL;
+  }
+
+  // Inicializando os arrays
+  for (int i = 0; i < grafo->numVertices; i++) {
+    visitado[i] = FALSE;
+    anterior[i] = -1;
+  }
+
+
+  // Chamando a função recursiva
+  if (VisitarGrafoLarguraCaminho(grafo, verticeOrigem, verticeDestino, visitado, anterior)) {
+    // Diferentemente da busca em profundidade, em que o caminho de uma origem a qualquer destino pode ser
+    // construido usando a pilha de chamadas atual, na busca em largura são construidos todos caminhos para quaisquer
+    // destinos, então é necessário que separemos o caminho que queremos
+    int atual = verticeDestino;
+    No *caminho = NULL;
+    while (atual != -1) {
+      No *novoNo = CriarNovoNo(atual);
+      novoNo->proximo = caminho;
+      caminho = novoNo;
+      atual = anterior[atual];
+    }
+    free(visitado);
+    free(anterior);
+    return caminho;
+  }
+
+  // Se não encontrou o caminho, libera a lista e retorna NULL
+  free(visitado);
+  free(anterior);
+  return NULL;
+}
+
 int main(void) {
   TipoValor valorDigitado = 0;
   int tamanhoDigitado = 0;
@@ -804,7 +797,7 @@ int main(void) {
     return 1;
   }
 
-  while (escolha > 0 && escolha < 15) {
+  while (escolha > 0 && escolha < 18) {
     printf("\nQual acao deseja realizar?\n");
     printf("1 - Inserir uma aresta\n");
     printf("2 - Remover uma aresta\n");
@@ -815,12 +808,13 @@ int main(void) {
     printf("7 - Imprimir grafo\n");
     printf("8 - Visitar grafo por profundidade\n");
     printf("9 - Visitar grafo por profundidade mostrando cores e tempo\n");
-    printf("10 - Encontrar caminho ate um destino\n");
+    printf("10 - Encontrar caminho ate um destino (Profundidade)\n");
     printf("11 - Verificar ciclos\n");
     printf("12 - Verificar componentes conexos\n");
     printf("13 - Visitar grafo por largura\n");
-    printf("14 - Limpar grafo\n");
-    printf("15 - Sair\n");
+    printf("14 - Encontrar caminho ate um destino (Largura)\n");
+    printf("17 - Limpar grafo\n");
+    printf("18 - Sair\n");
 
     scanf("%d", &escolha);
     printf("\n");
@@ -865,7 +859,7 @@ int main(void) {
 
         if (vertice2 < 0) break;
 
-        Boolean funcaoSucedida = RemoveAresta(grafo, vertice1, vertice2);
+        Boolean funcaoSucedida = RemoverAresta(grafo, vertice1, vertice2);
 
         if (funcaoSucedida)
           ImprimirValores(grafo);
@@ -994,6 +988,28 @@ int main(void) {
       break;
 
     case 14:
+      printf("Digite o vertice de origem\n");
+      scanf("%d", &vertice1);
+
+      if (vertice1 < 0) break;
+
+      printf("Digite o vertice de destino\n");
+      scanf("%d", &vertice2);
+
+      if (vertice2 < 0) break;
+
+      No *noListaCaminhoLargura = BuscaLarguraCaminho(grafo, vertice1, vertice2);
+
+      if (noListaCaminhoLargura) {
+        printf("O caminho entre os vertices %d e %d e:\n", vertice1, vertice2);
+        ImprimirCaminhoLista(noListaCaminhoLargura);
+        DestruirLista(noListaCaminhoLargura);
+      } else {
+        printf("Nao existe caminho entre os vertices %d e %d\n", vertice1, vertice2);
+      }
+      break;
+
+    case 17:
       LimparGrafo(grafo);
       printf("O grafo foi limpo\n");
       break;
