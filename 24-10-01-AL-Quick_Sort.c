@@ -39,7 +39,7 @@ void Trocar(TipoValor *a, TipoValor *b) {
 // T(m) = mC + C
 int ParticaoLomuto(TipoValor arr[], int inicio, int fim) {
   // Escolhendo o último elemento como pivô
-  // Pode ser melhor escolher o pivô de forma aleatória ou usando a mediana
+  // Seria melhor escolher o pivô de forma aleatória ou usando a mediana
   TipoValor pivo = arr[fim];
   // Inicializando i para fora do array
   int i = inicio - 1;
@@ -60,16 +60,15 @@ int ParticaoLomuto(TipoValor arr[], int inicio, int fim) {
   return i + 1;
 }
 
-
 // Função de partição do Quick Sort
 // Esquema de Hoare, com o primeiro elemento como pivô
 // Complexidade: O(m)
 // Sendo m o número de elementos na subarray que está sendo particionada
 // T(m) = mC + C
-int ParticaoHoare(int vet[], int inicio, int fim) {
+int ParticaoHoare(int arr[], int inicio, int fim) {
   // Escolhendo o primeiro elemento como pivô
-  // Pode ser melhor escolher o pivô de forma aleatória ou usando a mediana
-  int pivot = vet[inicio];
+  // Seria melhor escolher o pivô de forma aleatória ou usando a mediana
+  int pivot = arr[inicio];
   int esq = inicio;
   int dir = fim;
 
@@ -77,25 +76,25 @@ int ParticaoHoare(int vet[], int inicio, int fim) {
   while (esq < dir) {
     // Mova o ponteiro 'esq' para a direita até encontrar o primeiro elemento MAIOR que o pivô
     // esq < fim para garantir que não ultrapasse o limite do array
-    while (vet[esq] <= pivot && esq < fim)
+    while (arr[esq] <= pivot && esq < fim)
       esq++;
 
     // Mova o ponteiro 'dir' para a esquerda até encontrar o primeiro elemento menor ou igual que o pivô
-    while (vet[dir] > pivot)
+    while (arr[dir] > pivot)
       dir--;
 
     // Agora temos ponteiros para dois elementos, um maior e outro menor ou igual ao pivô
     // Portanto, iremos trocar esses elementos
     // esq < dir para garantir que 'esq' e 'dir' não se cruzaram
     if (esq < dir) {
-      Trocar(&vet[esq], &vet[dir]);
+      Trocar(&arr[esq], &arr[dir]);
     }
 
     // Continuaremos até que tenhamos uma parte menor ou igual ao pivô e outra maior
   }
 
   // Trocaremos o pivô com o último elemento da parte menor ou igual que está em 'dir' e retornamos o novo índice do pivô
-  Trocar(&vet[inicio], &vet[dir]);
+  Trocar(&arr[inicio], &arr[dir]);
   return dir;
 }
 
